@@ -1,0 +1,50 @@
+[
+  {
+    "ref": "coreyhaines31/marketingskills@copywriting",
+    "installs": "50.8K",
+    "beginner_score": 4,
+    "japanese_name": "売れる文章を書く",
+    "cat": "文章作成",
+    "grade": "take",
+    "skillId": "copywriting",
+    "tagline": "商品紹介やチラシの文章をプロ級に仕上げます",
+    "desc": "フリマアプリの商品説明、町内会のお知らせ、お店のチラシ…人に読んでもらう文章をAIが一緒に考えてくれます。「もっとキャッチーに」「もっと丁寧に」と言えば何度でも直してくれます。",
+    "installCmd": "npx skills add coreyhaines31/marketingskills@copywriting -g -y",
+    "usage": ["「この商品の紹介文を書いて」とClaudeに伝えます", "商品の特徴や伝えたいことを話します", "プロが書いたような文章が完成します"],
+    "discovered": "2026-03-29",
+    "recommendation": "50K以上のインストール実績。商品紹介からチラシまで幅広く使える",
+    "status": "候補"
+  },
+  {
+    "ref": "obra/superpowers@writing-plans",
+    "installs": "42.4K",
+    "beginner_score": 3,
+    "japanese_name": "文章の計画を立てる",
+    "cat": "文章作成",
+    "grade": "take",
+    "skillId": "writing-plans",
+    "tagline": "長い文章を書く前に構成を一緒に考えます",
+    "desc": "本や長い記事を書きたいけれど、どこから手をつけていいか分からない…そんな時にAIが構成案を一緒に考えてくれます。章立てや見出しを提案してくれるので、あとは書くだけです。",
+    "installCmd": "npx skills add obra/superpowers@writing-plans -g -y",
+    "usage": ["「○○について書きたい」とClaudeに伝えます", "テーマに合った構成案を提案してくれます", "各章の内容も一緒に考えてくれます"],
+    "discovered": "2026-03-29",
+    "recommendation": "42K+インストール。本や長文を書く前の構成作りに便利",
+    "status": "候補"
+  },
+  {
+    "ref": "supercent-io/skills-template@user-guide-writing",
+    "installs": "10.7K",
+    "beginner_score": 4,
+    "japanese_name": "使い方ガイドを作る",
+    "cat": "記録・文書",
+    "grade": "ume",
+    "skillId": "user-guide-writing",
+    "tagline": "アプリや道具の使い方説明書を自動で作ります",
+    "desc": "「孫にスマホの使い方を教えたい」「サークルで使うアプリの説明書が欲しい」使い方を話すだけで、分かりやすい説明書を作ってくれます。画面の番号付きステップで誰でも迷いません。",
+    "installCmd": "npx skills add supercent-io/skills-template@user-guide-writing -g -y",
+    "usage": ["「○○の使い方ガイドを作って」と伝えます", "操作手順を話すだけで整理してくれます", "番号付きの分かりやすい説明書が完成します"],
+    "discovered": "2026-03-29",
+    "recommendation": "10K+インストール。高齢者が家族に使い方を教える場面にぴったり",
+    "status": "候補"
+  }
+]
