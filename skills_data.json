@@ -223,5 +223,35 @@
     "ninki": false,
     "shin": false,
     "views": "1,789"
+  },
+  {
+    "id": 16,
+    "grade": "ume",
+    "name": "自分史・昔話を本にする",
+    "cat": "思い出整理",
+    "skillId": "jibunshi-book",
+    "tagline": "話すだけで、あなたの人生が一冊の本になります",
+    "desc": "思い出を語るだけで、AIが文章を整えて「自分史」の本を作ります。お孫さんへのプレゼントにぴったり。途中でやめてもOK、何日かけてもOK。あなたらしい言葉を大切にします。",
+    "installCmd": "npx skills add yyamagen358/asaichi-skills@jibunshi-book -g -y",
+    "installSteps": ["Claude Codeの画面（黒い画面）を開きます", "下のコマンドをコピーして貼り付けます", "Enterキーを押すとインストール完了です"],
+    "usage": ["「自分史を作りたい」とClaudeに話しかけます", "AIが質問してくれるので、思い出をお話しください", "話した内容がきれいな文章の本になります"],
+    "ninki": false,
+    "shin": true,
+    "views": "新着"
+  },
+  {
+    "id": 17,
+    "grade": "ume",
+    "name": "方言翻訳",
+    "cat": "趣味・創作",
+    "skillId": "hougen-translator",
+    "tagline": "お国言葉を標準語や英語に。笑える豆知識つき",
+    "desc": "大阪弁・博多弁・鹿児島弁など全国の方言を標準語や英語に翻訳。逆に標準語を方言に変換もできます。方言の豆知識やクイズもあって、お国言葉の面白さを再発見できます。",
+    "installCmd": "npx skills add yyamagen358/asaichi-skills@hougen-translator -g -y",
+    "installSteps": ["Claude Codeの画面（黒い画面）を開きます", "下のコマンドをコピーして貼り付けます", "Enterキーを押すとインストール完了です"],
+    "usage": ["「大阪弁で『ありがとう』はなんて言う？」と聞きます", "「この鹿児島弁を標準語にして」と方言を渡します", "「方言クイズを出して」で楽しいクイズも"],
+    "ninki": false,
+    "shin": true,
+    "views": "新着"
   }
 ]
