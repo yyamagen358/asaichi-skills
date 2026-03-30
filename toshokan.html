@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スキル図書館 — あなた専用の本棚</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;700;800&family=DotGothic16&family=Kaisei+Opti:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --washi:#fdf6e3;
+  --washi2:#f5ead0;
+  --washi3:#e8d9b5;
+  --sumi:#1a1208;
+  --sumi2:#3d2e1a;
+  --sumi3:#7a6545;
+  --red:#c0392b;
+  --red2:#e74c3c;
+  --indigo:#2c3e7a;
+  --green:#3a6b3a;
+  --amber:#c47a1a;
+  --border:rgba(60,40,10,0.18);
+  --shadow:rgba(60,40,10,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+  background:var(--washi);
+  font-family:'Kaisei Opti',serif;
+  color:var(--sumi);
+  overflow-x:hidden;
+  min-height:100vh;
+}
+
+/* ========== HEADER ========== */
+header {
+  background:var(--sumi);
+  border-bottom:3px solid var(--red);
+  padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  min-height:58px;
+  position:sticky;top:0;z-index:100;
+  flex-wrap:wrap;gap:8px;
+}
+.hdr-logo {
+  font-family:'Shippori Mincho B1',serif;
+  font-size:20px;font-weight:800;color:var(--washi);
+  letter-spacing:0.15em;
+  display:flex;align-items:center;gap:10px;
+}
+.hdr-logo .icon-book {
+  font-size:24px;
+}
+.hdr-logo span {
+  color:var(--red2);margin-left:4px;font-size:12px;letter-spacing:0.1em;font-weight:400;
+}
+.hdr-right {
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.hdr-user {
+  font-family:'Kaisei Opti',serif;
+  font-size:14px;color:var(--washi3);
+  letter-spacing:0.05em;
+}
+.btn-hdr {
+  background:var(--red);color:#fff;border:none;
+  font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;
+  padding:8px 18px;border-radius:2px;cursor:pointer;
+  letter-spacing:0.08em;transition:all 0.2s;
+}
+.btn-hdr:hover {background:var(--red2);}
+.btn-hdr.outline {
+  background:transparent;border:1.5px solid var(--washi3);color:var(--washi3);
+}
+.btn-hdr.outline:hover {border-color:var(--washi);color:var(--washi);}
+.btn-hdr.green {background:var(--green);}
+.btn-hdr.green:hover {background:#4a8b4a;}
+.link-asaichi {
+  color:var(--washi3);font-size:13px;text-decoration:none;
+  font-family:'DotGothic16',monospace;letter-spacing:0.05em;
+  transition:color 0.15s;
+}
+.link-asaichi:hover {color:var(--washi);}
+
+/* ========== WELCOME (GUEST) ========== */
+.welcome-section {
+  max-width:800px;margin:0 auto;padding:48px 24px 60px;
+  text-align:center;
+}
+.welcome-emoji {
+  font-size:64px;margin-bottom:16px;
+  display:block;
+}
+.welcome-title {
+  font-family:'Shippori Mincho B1',serif;
+  font-size:28px;font-weight:800;
+  color:var(--sumi);line-height:1.6;
+  letter-spacing:0.08em;
+  margin-bottom:12px;
+}
+.welcome-sub {
+  font-size:16px;color:var(--sumi3);line-height:1.8;
+  margin-bottom:40px;
+}
+.merit-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;margin-bottom:48px;
+  text-align:left;
+}
+.merit-card {
+  background:var(--washi2);
+  border:1.5px solid var(--border);
+  border-radius:4px;
+  padding:24px 20px;
+  box-shadow:3px 3px 0 var(--washi3);
+  transition:transform 0.2s;
+}
+.merit-card:hover {transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--washi3);}
+.merit-icon {
+  font-size:36px;margin-bottom:12px;display:block;
+}
+.merit-title {
+  font-family:'Shippori Mincho B1',serif;
+  font-size:16px;font-weight:700;
+  margin-bottom:8px;letter-spacing:0.05em;
+}
+.merit-desc {
+  font-size:14px;color:var(--sumi3);line-height:1.7;
+}
+.cta-box {
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.btn-cta {
+  background:var(--red);color:#fff;border:none;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:20px;font-weight:800;
+  padding:18px 48px;border-radius:4px;cursor:pointer;
+  letter-spacing:0.12em;
+  box-shadow:4px 4px 0 var(--sumi2);
+  transition:all 0.2s;
+}
+.btn-cta:hover {background:var(--red2);transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--sumi2);}
+.login-link {
+  font-size:15px;color:var(--sumi3);cursor:pointer;
+  text-decoration:underline;transition:color 0.15s;
+}
+.login-link:hover {color:var(--red);}
+
+/* ========== BOOKSHELF (LOGGED IN) ========== */
+.shelf-section {
+  max-width:960px;margin:0 auto;padding:32px 24px 60px;
+  display:none;
+}
+.shelf-header {
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:24px;padding-bottom:14px;
+  border-bottom:2px solid var(--sumi);
+  position:relative;flex-wrap:wrap;gap:8px;
+}
+.shelf-header::after {
+  content:'';position:absolute;bottom:-4px;left:0;
+  width:48px;height:2px;background:var(--red);
+}
+.shelf-title {
+  font-family:'Shippori Mincho B1',serif;
+  font-size:22px;font-weight:800;letter-spacing:0.1em;
+}
+.shelf-count {
+  font-family:'DotGothic16',monospace;
+  font-size:13px;color:var(--sumi3);
+}
+.shelf-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:18px;
+}
+.skill-card {
+  background:var(--washi);
+  border:1.5px solid var(--border);
+  border-radius:2px;
+  box-shadow:3px 3px 0 var(--washi3);
+  transition:all 0.2s;overflow:hidden;
+  position:relative;
+}
+.skill-card:hover {transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--washi3);}
+
+.skill-card .card-top {
+  background:var(--washi2);
+  border-bottom:1.5px solid var(--border);
+  padding:16px;display:flex;align-items:center;gap:14px;
+  position:relative;
+}
+.card-top .grade-stamp {
+  width:46px;height:46px;border-radius:50%;
+  border:2.5px solid var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:18px;font-weight:800;color:var(--red);
+  background:rgba(250,235,233,0.9);
+  transform:rotate(-8deg);flex-shrink:0;
+}
+.grade-stamp.ume {border-color:var(--green);color:var(--green);background:rgba(232,240,232,0.9);}
+.grade-stamp.take {border-color:var(--indigo);color:var(--indigo);background:rgba(234,236,245,0.9);}
+.grade-stamp.matsu {border-color:var(--amber);color:var(--amber);background:rgba(253,243,227,0.9);}
+
+.card-top .card-info {flex:1;min-width:0;}
+.card-info .skill-name {
+  font-family:'Shippori Mincho B1',serif;
+  font-size:16px;font-weight:700;letter-spacing:0.05em;
+  margin-bottom:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.card-info .skill-meta {
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+}
+.skill-meta .cat-tag {
+  font-family:'DotGothic16',monospace;font-size:11px;
+  color:var(--indigo);background:#eaecf5;
+  padding:2px 8px;border-radius:2px;
+}
+.skill-meta .date-tag {
+  font-family:'DotGothic16',monospace;font-size:11px;color:var(--sumi3);
+}
+
+.card-actions {
+  display:flex;gap:8px;padding:12px 16px;
+}
+.btn-action {
+  flex:1;border:1.5px solid var(--border);border-radius:2px;
+  padding:10px 8px;font-family:'Kaisei Opti',serif;font-size:13px;
+  color:var(--sumi3);cursor:pointer;transition:all 0.15s;
+  background:var(--washi2);text-align:center;
+  letter-spacing:0.04em;
+}
+.btn-action:hover {border-color:var(--indigo);color:var(--indigo);background:#eaecf5;}
+.btn-action.remove {color:var(--sumi3);}
+.btn-action.remove:hover {border-color:var(--red);color:var(--red);background:#faeae8;}
+
+/* 空の本棚 */
+.shelf-empty {
+  text-align:center;padding:60px 20px;
+}
+.shelf-empty .empty-icon {font-size:56px;opacity:0.3;margin-bottom:16px;display:block;}
+.shelf-empty .empty-msg {
+  font-size:16px;color:var(--sumi3);line-height:1.8;margin-bottom:24px;
+}
+.btn-to-asaichi {
+  display:inline-block;
+  background:var(--green);color:#fff;border:none;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:16px;font-weight:700;
+  padding:14px 32px;border-radius:4px;cursor:pointer;
+  letter-spacing:0.08em;text-decoration:none;
+  box-shadow:3px 3px 0 var(--sumi2);transition:all 0.2s;
+}
+.btn-to-asaichi:hover {background:#4a8b4a;transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--sumi2);}
+
+/* ========== MODAL ========== */
+.modal-bg {
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(26,18,8,0.72);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+.modal-bg.open {display:flex;}
+.modal-box {
+  background:var(--washi);border:3px solid var(--sumi);
+  max-width:460px;width:92%;border-radius:4px;overflow:hidden;
+  box-shadow:8px 8px 0 var(--sumi2);
+  animation:mIn .22s ease-out;
+}
+@keyframes mIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+
+.modal-hd {
+  background:var(--sumi);color:var(--washi);
+  padding:16px 22px;border-bottom:2px solid var(--red);
+}
+.modal-hd-title {
+  font-family:'Shippori Mincho B1',serif;
+  font-size:20px;font-weight:800;letter-spacing:0.1em;
+}
+.modal-body {padding:24px 22px;}
+
+/* タブ切替 */
+.tab-row {
+  display:flex;gap:0;margin-bottom:24px;
+}
+.tab-btn {
+  flex:1;padding:12px 8px;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:15px;font-weight:700;
+  letter-spacing:0.08em;
+  text-align:center;cursor:pointer;
+  border:1.5px solid var(--border);
+  background:var(--washi2);color:var(--sumi3);
+  transition:all 0.15s;
+}
+.tab-btn:first-child {border-radius:4px 0 0 4px;}
+.tab-btn:last-child {border-radius:0 4px 4px 0;}
+.tab-btn.active {
+  background:var(--red);border-color:var(--red);color:#fff;
+}
+
+/* フォーム */
+.form-group {margin-bottom:16px;}
+.form-group label {
+  display:block;font-size:14px;color:var(--sumi3);
+  margin-bottom:6px;letter-spacing:0.08em;
+  font-family:'DotGothic16',monospace;
+}
+.form-group input {
+  width:100%;background:var(--washi2);
+  border:1.5px solid var(--border);border-radius:4px;
+  padding:12px 14px;
+  font-family:'Kaisei Opti',serif;font-size:16px;color:var(--sumi);
+  outline:none;transition:border-color 0.15s;
+}
+.form-group input:focus {border-color:var(--red);}
+.form-group input::placeholder {color:var(--sumi3);opacity:0.5;}
+
+.btn-submit {
+  width:100%;background:var(--red);color:#fff;border:none;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:16px;font-weight:700;
+  padding:14px;border-radius:4px;cursor:pointer;
+  letter-spacing:0.1em;transition:all 0.2s;
+  margin-top:8px;
+}
+.btn-submit:hover {background:var(--red2);}
+.btn-submit:disabled {background:var(--sumi3);cursor:not-allowed;}
+.btn-submit.green {background:var(--green);}
+.btn-submit.green:hover {background:#4a8b4a;}
+
+.form-note {
+  font-size:13px;color:var(--sumi3);text-align:center;
+  margin-top:12px;line-height:1.7;
+}
+
+.otp-input {
+  text-align:center;font-size:28px;letter-spacing:0.5em;
+  font-family:'DotGothic16',monospace;
+}
+
+.modal-close {
+  position:absolute;top:14px;right:16px;
+  background:none;border:none;color:var(--washi3);
+  font-size:22px;cursor:pointer;transition:color 0.15s;
+  line-height:1;
+}
+.modal-close:hover {color:var(--washi);}
+
+.modal-hd {position:relative;}
+
+/* 画面切替用 */
+.form-panel {display:none;}
+.form-panel.active {display:block;}
+
+.error-msg {
+  color:var(--red);font-size:13px;text-align:center;
+  margin-top:8px;display:none;
+}
+.error-msg.show {display:block;}
+
+/* ========== TOAST ========== */
+.toast {
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+  background:var(--sumi);color:var(--washi);
+  border-left:4px solid var(--green);border-radius:2px;
+  padding:14px 24px;
+  font-family:'Kaisei Opti',serif;font-size:15px;
+  display:none;align-items:center;gap:10px;
+  box-shadow:4px 4px 0 var(--sumi2);z-index:999;
+  white-space:nowrap;animation:tUp .2s ease-out;
+  max-width:90vw;
+}
+@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast.show {display:flex;}
+.toast.error {border-left-color:var(--red);}
+
+/* ========== LOADING SPINNER ========== */
+.spinner {
+  display:inline-block;width:18px;height:18px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin 0.6s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ========== DECORATIVE ========== */
+.deco-bar {
+  background:var(--washi2);border-bottom:1px solid var(--border);
+  padding:10px 24px;text-align:center;
+  font-family:'DotGothic16',monospace;font-size:12px;
+  color:var(--sumi3);letter-spacing:0.15em;
+}
+
+/* ========== FOOTER ========== */
+footer {
+  background:var(--sumi);color:var(--washi3);
+  padding:20px 24px;text-align:center;
+  font-size:12px;letter-spacing:0.08em;
+  border-top:3px solid var(--red);
+  margin-top:40px;
+}
+footer a {color:var(--washi3);text-decoration:none;transition:color 0.15s;}
+footer a:hover {color:var(--washi);}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:600px){
+  header {padding:0 14px;min-height:auto;padding:10px 14px;}
+  .hdr-logo {font-size:17px;}
+  .welcome-title {font-size:22px;}
+  .welcome-section {padding:32px 16px 48px;}
+  .merit-grid {grid-template-columns:1fr;gap:14px;}
+  .shelf-section {padding:24px 14px 48px;}
+  .shelf-grid {grid-template-columns:1fr;}
+  .btn-cta {font-size:17px;padding:15px 32px;}
+  .modal-box {width:96%;}
+  .modal-body {padding:20px 16px;}
+  .card-actions {flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<header>
+  <div class="hdr-logo">
+    <span class="icon-book">📚</span>
+    スキル図書館
+    <span>— あなた専用の本棚</span>
+  </div>
+  <div class="hdr-right">
+    <a href="https://yyamagen358.github.io/asaichi-skills/" class="link-asaichi">🏪 朝市へ行く</a>
+    <span class="hdr-user" id="hdrUser">ゲスト</span>
+    <button class="btn-hdr outline" id="hdrLoginBtn" onclick="openModal('register')">ログイン</button>
+    <button class="btn-hdr green" id="hdrLogoutBtn" onclick="doLogout()" style="display:none;">ログアウト</button>
+  </div>
+</header>
+
+<div class="deco-bar">
+  ─── どんどん忘れても大丈夫。あなたのスキルはここに保管されています ───
+</div>
+
+<!-- ========== GUEST: WELCOME ========== -->
+<section class="welcome-section" id="guestView">
+  <span class="welcome-emoji">📖</span>
+  <h1 class="welcome-title">どんどん忘れても大丈夫！<br>あなた専用の本棚がここにあります</h1>
+  <p class="welcome-sub">
+    朝市で手に入れたスキルを、いつでも確認できる「自分だけの本棚」。<br>
+    無料の会員登録で、あなたの学びを安心して保管しましょう。
+  </p>
+
+  <div class="merit-grid">
+    <div class="merit-card">
+      <span class="merit-icon">📚</span>
+      <div class="merit-title">自分だけの本棚</div>
+      <div class="merit-desc">インストールしたスキルがひと目で分かる一覧。何を学んだか、いつでも確認できます。</div>
+    </div>
+    <div class="merit-card">
+      <span class="merit-icon">🔍</span>
+      <div class="merit-title">「何を入れたか」いつでも確認</div>
+      <div class="merit-desc">「あのスキル、なんだっけ？」と思ったときも、すぐに見つかります。</div>
+    </div>
+    <div class="merit-card">
+      <span class="merit-icon">📬</span>
+      <div class="merit-title">新着スキルのお知らせ</div>
+      <div class="merit-desc">朝市に新しいスキルが入荷したら、メールでお知らせします。</div>
+    </div>
+    <div class="merit-card">
+      <span class="merit-icon">💰</span>
+      <div class="merit-title">スキル制作代行の会員割引</div>
+      <div class="merit-desc">会員限定の特別価格で、あなただけのオリジナルスキルを制作できます。</div>
+    </div>
+  </div>
+
+  <div class="cta-box">
+    <button class="btn-cta" onclick="openModal('register')">無料で会員登録する</button>
+    <span class="login-link" onclick="openModal('login')">すでに会員の方はこちら</span>
+  </div>
+</section>
+
+<!-- ========== LOGGED IN: BOOKSHELF ========== -->
+<section class="shelf-section" id="shelfView">
+  <div class="shelf-header">
+    <h2 class="shelf-title" id="shelfTitle">本棚</h2>
+    <span class="shelf-count" id="shelfCount"></span>
+  </div>
+
+  <div id="shelfContent">
+    <!-- JS が描画 -->
+  </div>
+</section>
+
+<!-- ========== AUTH MODAL ========== -->
+<div class="modal-bg" id="authModal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-hd-title" id="modalTitle">会員登録</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- TAB ROW -->
+      <div class="tab-row" id="tabRow">
+        <div class="tab-btn active" onclick="switchTab('register')">はじめての方</div>
+        <div class="tab-btn" onclick="switchTab('login')">会員の方</div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="form-panel active" id="panelRegister">
+        <div class="form-group">
+          <label>お名前</label>
+          <input type="text" id="regName" placeholder="例：山田太郎">
+        </div>
+        <div class="form-group">
+          <label>メールアドレス</label>
+          <input type="email" id="regEmail" placeholder="例：taro@example.com">
+        </div>
+        <button class="btn-submit" id="regBtn" onclick="doRegister()">確認コードを送る</button>
+        <div class="error-msg" id="regError"></div>
+        <p class="form-note">メールで届く6桁のコードでログインします。<br>パスワードは不要です。</p>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="form-panel" id="panelLogin">
+        <div class="form-group">
+          <label>メールアドレス</label>
+          <input type="email" id="loginEmail" placeholder="登録済みのメールアドレス">
+        </div>
+        <button class="btn-submit" id="loginBtn" onclick="doLogin()">確認コードを送る</button>
+        <div class="error-msg" id="loginError"></div>
+      </div>
+
+      <!-- OTP FORM -->
+      <div class="form-panel" id="panelOTP">
+        <p class="form-note" style="margin-bottom:16px;" id="otpNote">
+          メールに送られた6桁のコードを入力してください。
+        </p>
+        <div class="form-group">
+          <label>確認コード</label>
+          <input type="text" id="otpCode" class="otp-input" maxlength="6" placeholder="000000" inputmode="numeric">
+        </div>
+        <button class="btn-submit green" id="otpBtn" onclick="doVerifyOTP()">ログイン</button>
+        <div class="error-msg" id="otpError"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast"></div>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <a href="https://yyamagen358.github.io/asaichi-skills/">スキル朝市</a> ｜
+  <a href="https://yyamagen358.github.io/asaichi-skills/toshokan.html">スキル図書館</a>
+  <br style="margin-bottom:6px;">
+  <span style="opacity:0.6;">スキル図書館 &copy; 2026</span>
+</footer>
+
+<script>
+// ==================================================
+// CONFIG
+// ==================================================
+const API_BASE = 'https://yyama-ai-bot.yyamagen.workers.dev';
+const ASAICHI_URL = 'https://yyamagen358.github.io/asaichi-skills/';
+const TOKEN_KEY = 'toshokan_token';
+const USER_KEY = 'toshokan_user';
+
+// ==================================================
+// STATE
+// ==================================================
+let currentUser = null;
+let library = [];
+let pendingEmail = '';
+
+// ==================================================
+// DOM
+// ==================================================
+const $ = (id) => document.getElementById(id);
+
+// ==================================================
+// INIT
+// ==================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    await tryAutoLogin(token);
+  }
+  // URL パラメータでスキル追加
+  handleAddParam();
+});
+
+async function tryAutoLogin(token) {
+  try {
+    const res = await fetch(API_BASE + '/api/library', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      showGuestView();
+      return;
+    }
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    const saved = localStorage.getItem(USER_KEY);
+    currentUser = saved ? JSON.parse(saved) : { name: '会員' };
+    library = data.library || data.skills || [];
+    showShelfView();
+  } catch (e) {
+    console.error('Auto-login failed:', e);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    showGuestView();
+  }
+}
+
+// ==================================================
+// VIEW SWITCHING
+// ==================================================
+function showGuestView() {
+  $('guestView').style.display = 'block';
+  $('shelfView').style.display = 'none';
+  $('hdrUser').textContent = 'ゲスト';
+  $('hdrLoginBtn').style.display = '';
+  $('hdrLogoutBtn').style.display = 'none';
+}
+
+function showShelfView() {
+  $('guestView').style.display = 'none';
+  $('shelfView').style.display = 'block';
+  const name = currentUser?.name || '会員';
+  $('hdrUser').textContent = name + 'さんの本棚';
+  $('hdrLoginBtn').style.display = 'none';
+  $('hdrLogoutBtn').style.display = '';
+  $('shelfTitle').textContent = name + 'さんの本棚';
+  renderShelf();
+}
+
+// ==================================================
+// RENDER SHELF
+// ==================================================
+function renderShelf() {
+  const container = $('shelfContent');
+  $('shelfCount').textContent = library.length + ' 冊のスキル';
+
+  if (library.length === 0) {
+    container.innerHTML = `
+      <div class="shelf-empty">
+        <span class="empty-icon">📖</span>
+        <p class="empty-msg">まだスキルがありません。<br>朝市で気になるスキルを見つけましょう！</p>
+        <a href="${ASAICHI_URL}" class="btn-to-asaichi">🏪 朝市へ行く</a>
+      </div>
+    `;
+    return;
+  }
+
+  const gradeLabel = (g) => {
+    const m = { ume: '梅', take: '竹', matsu: '松' };
+    return m[g] || g || '梅';
+  };
+  const gradeClass = (g) => {
+    if (g === 'take' || g === '竹') return 'take';
+    if (g === 'matsu' || g === '松') return 'matsu';
+    return 'ume';
+  };
+
+  let html = '<div class="shelf-grid">';
+  library.forEach((s) => {
+    const gCls = gradeClass(s.grade);
+    const gLbl = gradeLabel(s.grade);
+    const date = s.installedAt ? new Date(s.installedAt).toLocaleDateString('ja-JP') : '';
+    html += `
+      <div class="skill-card">
+        <div class="card-top">
+          <div class="grade-stamp ${gCls}">${gLbl}</div>
+          <div class="card-info">
+            <div class="skill-name">${escH(s.name || s.skillId)}</div>
+            <div class="skill-meta">
+              ${s.cat ? `<span class="cat-tag">${escH(s.cat)}</span>` : ''}
+              ${date ? `<span class="date-tag">${date}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action" onclick="window.open('${ASAICHI_URL}#${encodeURIComponent(s.skillId || '')}','_blank')">使い方を見る</button>
+          <button class="btn-action remove" onclick="removeSkill('${escAttr(s.skillId)}')">本棚から外す</button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function escH(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+function escAttr(s) {
+  return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ==================================================
+// MODAL
+// ==================================================
+function openModal(tab) {
+  $('authModal').classList.add('open');
+  switchTab(tab || 'register');
+}
+
+function closeModal() {
+  $('authModal').classList.remove('open');
+  clearErrors();
+}
+
+function switchTab(tab) {
+  const tabs = $('tabRow').children;
+  $('panelRegister').classList.remove('active');
+  $('panelLogin').classList.remove('active');
+  $('panelOTP').classList.remove('active');
+  $('tabRow').style.display = '';
+  clearErrors();
+
+  if (tab === 'register') {
+    tabs[0].classList.add('active');
+    tabs[1].classList.remove('active');
+    $('panelRegister').classList.add('active');
+    $('modalTitle').textContent = '会員登録';
+  } else if (tab === 'login') {
+    tabs[0].classList.remove('active');
+    tabs[1].classList.add('active');
+    $('panelLogin').classList.add('active');
+    $('modalTitle').textContent = 'ログイン';
+  }
+}
+
+function showOTPPanel(email) {
+  $('panelRegister').classList.remove('active');
+  $('panelLogin').classList.remove('active');
+  $('panelOTP').classList.add('active');
+  $('tabRow').style.display = 'none';
+  $('modalTitle').textContent = '確認コード入力';
+  $('otpNote').textContent = email + ' に送られた6桁のコードを入力してください。';
+  $('otpCode').value = '';
+  $('otpCode').focus();
+  pendingEmail = email;
+}
+
+function clearErrors() {
+  ['regError', 'loginError', 'otpError'].forEach((id) => {
+    const el = $(id);
+    el.classList.remove('show');
+    el.textContent = '';
+  });
+}
+
+function showError(id, msg) {
+  const el = $(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function setLoading(btnId, loading) {
+  const btn = $(btnId);
+  if (loading) {
+    btn.disabled = true;
+    btn.dataset.origText = btn.textContent;
+    btn.innerHTML = '<span class="spinner"></span>送信中...';
+  } else {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.origText || '送信';
+  }
+}
+
+// ==================================================
+// API: REGISTER
+// ==================================================
+async function doRegister() {
+  const name = $('regName').value.trim();
+  const email = $('regEmail').value.trim();
+  if (!name) { showError('regError', 'お名前を入力してください'); return; }
+  if (!email) { showError('regError', 'メールアドレスを入力してください'); return; }
+
+  setLoading('regBtn', true);
+  try {
+    const res = await fetch(API_BASE + '/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '登録に失敗しました');
+    showOTPPanel(email);
+  } catch (e) {
+    showError('regError', e.message);
+  } finally {
+    setLoading('regBtn', false);
+  }
+}
+
+// ==================================================
+// API: LOGIN
+// ==================================================
+async function doLogin() {
+  const email = $('loginEmail').value.trim();
+  if (!email) { showError('loginError', 'メールアドレスを入力してください'); return; }
+
+  setLoading('loginBtn', true);
+  try {
+    const res = await fetch(API_BASE + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'ログインに失敗しました');
+    showOTPPanel(email);
+  } catch (e) {
+    showError('loginError', e.message);
+  } finally {
+    setLoading('loginBtn', false);
+  }
+}
+
+// ==================================================
+// API: VERIFY OTP
+// ==================================================
+async function doVerifyOTP() {
+  const otp = $('otpCode').value.trim();
+  if (!otp || otp.length !== 6) { showError('otpError', '6桁のコードを入力してください'); return; }
+
+  setLoading('otpBtn', true);
+  try {
+    const res = await fetch(API_BASE + '/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: pendingEmail, otp })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'コードが正しくありません');
+
+    // Save token & user
+    localStorage.setItem(TOKEN_KEY, data.token);
+    if (data.user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      currentUser = data.user;
+    } else {
+      currentUser = { name: pendingEmail.split('@')[0] };
+      localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+    }
+
+    closeModal();
+    showToast('ログインしました！', false);
+
+    // Fetch library
+    await fetchLibrary();
+    showShelfView();
+
+    // 未処理の追加パラメータがあれば実行
+    handleAddParam();
+  } catch (e) {
+    showError('otpError', e.message);
+  } finally {
+    setLoading('otpBtn', false);
+  }
+}
+
+// ==================================================
+// API: FETCH LIBRARY
+// ==================================================
+async function fetchLibrary() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return;
+  try {
+    const res = await fetch(API_BASE + '/api/library', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) {
+      doLogout();
+      return;
+    }
+    const data = await res.json();
+    library = data.library || data.skills || [];
+  } catch (e) {
+    console.error('Fetch library error:', e);
+  }
+}
+
+// ==================================================
+// API: ADD SKILL
+// ==================================================
+async function addSkill(skillId, name, grade, cat) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return false;
+  try {
+    const res = await fetch(API_BASE + '/api/library/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ skillId, name, grade, cat })
+    });
+    if (res.status === 401) { doLogout(); return false; }
+    if (!res.ok) {
+      const d = await res.json();
+      throw new Error(d.error || '追加に失敗しました');
+    }
+    await fetchLibrary();
+    renderShelf();
+    return true;
+  } catch (e) {
+    showToast(e.message, true);
+    return false;
+  }
+}
+
+// ==================================================
+// API: REMOVE SKILL
+// ==================================================
+async function removeSkill(skillId) {
+  if (!confirm('このスキルを本棚から外しますか？')) return;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return;
+  try {
+    const res = await fetch(API_BASE + '/api/library/remove', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ skillId })
+    });
+    if (res.status === 401) { doLogout(); return; }
+    if (!res.ok) {
+      const d = await res.json();
+      throw new Error(d.error || '削除に失敗しました');
+    }
+    await fetchLibrary();
+    renderShelf();
+    showToast('本棚から外しました', false);
+  } catch (e) {
+    showToast(e.message, true);
+  }
+}
+
+// ==================================================
+// LOGOUT
+// ==================================================
+function doLogout() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  currentUser = null;
+  library = [];
+  showGuestView();
+  showToast('ログアウトしました', false);
+}
+
+// ==================================================
+// URL PARAM: ?add=SKILL_ID&name=NAME&grade=GRADE&cat=CAT
+// ==================================================
+function handleAddParam() {
+  const params = new URLSearchParams(window.location.search);
+  const skillId = params.get('add');
+  if (!skillId) return;
+
+  const name = params.get('name') || skillId;
+  const grade = params.get('grade') || 'ume';
+  const cat = params.get('cat') || '';
+
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    // 未ログイン → 登録を促す（パラメータは残しておく）
+    showToast('スキルを本棚に追加するには、会員登録が必要です', true);
+    openModal('register');
+    return;
+  }
+
+  // ログイン済み → 即追加
+  (async () => {
+    const ok = await addSkill(skillId, name, grade, cat);
+    if (ok) {
+      showToast('「' + name + '」を本棚に追加しました！', false);
+      // URLからパラメータを除去
+      const url = new URL(window.location);
+      url.searchParams.delete('add');
+      url.searchParams.delete('name');
+      url.searchParams.delete('grade');
+      url.searchParams.delete('cat');
+      window.history.replaceState({}, '', url);
+    }
+  })();
+}
+
+// ==================================================
+// TOAST
+// ==================================================
+function showToast(msg, isError) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.classList.remove('show'); }, 3500);
+}
+
+// ==================================================
+// ENTER KEY SUPPORT
+// ==================================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const active = document.activeElement;
+    if (active === $('regName') || active === $('regEmail')) doRegister();
+    else if (active === $('loginEmail')) doLogin();
+    else if (active === $('otpCode')) doVerifyOTP();
+  }
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
