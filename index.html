@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スキル朝市 — AIの道具、よってらっしゃい！</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;700;800&family=DotGothic16&family=Kaisei+Opti:wght@400;700&family=Zen+Kurenaido&display=swap" rel="stylesheet">
+<style>
+:root{
+  --washi:#fdf8ee;
+  --washi2:#f5edcf;
+  --washi3:#e8d9aa;
+  --sumi:#1a1208;
+  --sumi2:#3d2e1a;
+  --sumi3:#7a6545;
+  --red:#c0392b;
+  --red2:#e74c3c;
+  --indigo:#2c3e7a;
+  --green:#2e6b2e;
+  --amber:#b8720a;
+  --ume:#8b4a7a;   /* 梅 — 紫がかったピンク */
+  --ume2:#b06090;
+  --take:#2e6b2e;  /* 竹 — 深緑 */
+  --take2:#4a9a4a;
+  --matsu:#8b6a00; /* 松 — 金色 */
+  --matsu2:#c49a00;
+  --border:rgba(60,40,10,0.18);
+  --shadow:rgba(60,40,10,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  background:var(--washi);
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(160,130,80,0.1) 39px,rgba(160,130,80,0.1) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(160,130,80,0.05) 39px,rgba(160,130,80,0.05) 40px);
+  font-family:'Kaisei Opti',serif;
+  color:var(--sumi);
+  overflow-x:hidden;
+}
+
+/* ===== のぼり旗アニメ ===== */
+@keyframes nobori{0%,100%{transform:rotate(-2deg) skewX(-1deg)}50%{transform:rotate(2deg) skewX(1deg)}}
+@keyframes swing{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes fall{0%{transform:translateY(-10px) rotate(0deg) translateX(0);opacity:0.9}100%{transform:translateY(520px) rotate(400deg) translateX(50px);opacity:0}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* ===== ヒーロー朝市パノラマ ===== */
+.hero{
+  width:100%;height:480px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#87ceeb 0%,#b8dcf0 30%,#d4c9a0 30%,#c8b888 55%,#b8a870 100%);
+}
+
+/* 空 */
+.cloud{position:absolute;pointer-events:none;}
+
+/* 朝日 */
+.asahi{
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,#fff9e0,#ffd700 40%,#ffb800 70%,transparent);
+  opacity:0.9;
+  box-shadow:0 0 40px 20px rgba(255,200,0,0.3);
+}
+/* 光芒 */
+.asahi::before,.asahi::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:200%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,200,0,0.4),transparent);
+  transform-origin:left center;
+}
+.asahi::before{transform:translateY(-50%) rotate(30deg);}
+.asahi::after{transform:translateY(-50%) rotate(-30deg);}
+
+/* 富士山（遠景） */
+.fuji-bg{
+  position:absolute;bottom:30%;left:50%;transform:translateX(-50%);
+  width:0;height:0;
+  border-left:140px solid transparent;
+  border-right:140px solid transparent;
+  border-bottom:160px solid #a0b8d0;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  opacity:0.7;
+}
+.fuji-snow{
+  position:absolute;bottom:30%;left:50%;transform:translateX(-50%);
+  width:0;height:0;
+  border-left:60px solid transparent;
+  border-right:60px solid transparent;
+  border-bottom:70px solid rgba(255,255,255,0.85);
+  opacity:0.9;
+}
+
+/* 地面 */
+.ground{position:absolute;bottom:0;left:0;right:0;height:70%;}
+
+/* 朝市の屋台通り */
+.yatai-row{
+  position:absolute;bottom:0;left:0;right:0;height:65%;
+  display:flex;align-items:flex-end;justify-content:space-around;
+  padding:0 20px;
+}
+
+/* のぼり旗群 */
+.nobori-group{position:absolute;bottom:0;}
+.nobori{
+  width:28px;height:120px;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.nobori-pole{width:3px;height:120px;background:#8b5a2a;position:absolute;left:50%;transform:translateX(-50%);}
+.nobori-flag{
+  width:24px;height:80px;border-radius:0 0 4px 0;
+  position:absolute;top:0;left:50%;
+  display:flex;align-items:center;justify-content:center;
+  writing-mode:vertical-rl;text-orientation:upright;
+  font-family:'Shippori Mincho B1',serif;font-size:9px;font-weight:800;
+  color:white;letter-spacing:0.05em;
+  animation:nobori 3s ease-in-out infinite;
+  transform-origin:top left;
+}
+
+/* テント屋台 */
+.yatai{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;
+}
+.yatai-roof{
+  width:0;height:0;
+  border-left:60px solid transparent;
+  border-right:60px solid transparent;
+  border-bottom:40px solid var(--red);
+  position:relative;
+}
+.yatai-roof::after{
+  content:'';position:absolute;top:5px;left:-55px;
+  width:110px;height:30px;
+  background:var(--red2);clip-path:polygon(0 0,100% 0,90% 100%,10% 100%);
+}
+.yatai-stripe{
+  width:110px;height:40px;
+  background:repeating-linear-gradient(
+    180deg,var(--red),var(--red) 8px,var(--washi) 8px,var(--washi) 16px
+  );
+}
+.yatai-body{
+  width:110px;height:55px;
+  background:#deb887;border:2px solid #8b6914;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Shippori Mincho B1',serif;font-size:11px;font-weight:700;
+  text-align:center;line-height:1.4;color:var(--sumi);
+}
+.yatai-leg{
+  width:8px;height:30px;background:#8b6914;
+}
+
+/* 提灯 */
+.chochin-row{
+  position:absolute;top:25%;left:0;right:0;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:0 40px;
+}
+.chochin{
+  width:22px;height:32px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#ffee88,#ff9900 60%,#cc6600);
+  border:1.5px solid #cc6600;
+  position:relative;animation:swing 2.5s ease-in-out infinite;
+  transform-origin:top center;
+}
+.chochin::before{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:3px;height:6px;background:#8b4500;border-radius:1px;}
+.chochin::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:5px;background:#8b4500;border-radius:1px;}
+.chochin-rope{position:absolute;top:0;left:0;right:0;height:2px;background:#8b6914;z-index:0;}
+
+/* 桜 */
+.sakura-hero{position:absolute;pointer-events:none;}
+
+/* 掛け声バナー */
+.kakeoe{
+  position:absolute;bottom:62%;left:50%;transform:translateX(-50%);
+  background:var(--red);color:white;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:18px;font-weight:800;
+  padding:8px 32px;border-radius:2px;
+  letter-spacing:0.2em;white-space:nowrap;
+  box-shadow:3px 3px 0 var(--sumi2);
+  animation:bounce 2s ease-in-out infinite;
+}
+
+/* ヒーロータイトル */
+.hero-overlay{
+  position:absolute;top:0;left:0;right:0;
+  padding:20px 32px;
+  background:linear-gradient(180deg,rgba(0,0,0,0.4),transparent);
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.hero-title-txt{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:28px;font-weight:800;color:white;
+  letter-spacing:0.12em;line-height:1.3;
+  text-shadow:2px 2px 8px rgba(0,0,0,0.6);
+}
+.hero-sub-txt{
+  font-size:13px;color:rgba(255,255,255,0.9);
+  margin-top:6px;letter-spacing:0.1em;
+  text-shadow:1px 1px 4px rgba(0,0,0,0.5);
+  line-height:1.7;
+}
+.hero-hanko{
+  width:56px;height:56px;border-radius:50%;
+  border:2.5px solid white;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Shippori Mincho B1',serif;font-size:18px;font-weight:800;
+  color:white;background:rgba(192,57,43,0.85);
+  transform:rotate(-12deg);
+  box-shadow:0 2px 12px rgba(0,0,0,0.3);
+  writing-mode:vertical-rl;text-orientation:upright;letter-spacing:0;
+  animation:swing 5s ease-in-out infinite;
+  text-shadow:none;
+}
+
+/* 花びら */
+.petal{position:absolute;pointer-events:none;animation:fall linear infinite;}
+
+/* ===== ナビゲーション ===== */
+nav{
+  background:var(--sumi);border-bottom:3px solid var(--red);
+  padding:0 28px;display:flex;align-items:center;justify-content:space-between;
+  height:56px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.nav-logo{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:20px;font-weight:800;color:var(--washi);
+  letter-spacing:0.15em;display:flex;align-items:center;gap:10px;
+}
+.nav-logo-sub{color:var(--red2);font-size:12px;letter-spacing:0.1em;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.search-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+  border-radius:2px;padding:6px 14px;
+}
+.search-wrap input{background:none;border:none;outline:none;color:var(--washi);font-family:inherit;font-size:13px;width:200px;}
+.search-wrap input::placeholder{color:rgba(255,255,255,0.35);}
+
+/* ===== 松竹梅タブ ===== */
+.matsutakeme{
+  display:flex;background:var(--sumi2);
+  border-bottom:3px solid var(--border);
+  position:sticky;top:56px;z-index:99;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+.mtm-tab{
+  flex:1;padding:14px 8px;text-align:center;cursor:pointer;
+  border:none;background:none;
+  font-family:'Shippori Mincho B1',serif;
+  font-size:16px;font-weight:800;letter-spacing:0.15em;
+  transition:all 0.2s;color:rgba(255,255,255,0.5);
+  border-bottom:3px solid transparent;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  position:relative;
+}
+.mtm-tab:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.mtm-tab.active-ume{color:var(--ume2);border-bottom-color:var(--ume2);background:rgba(139,74,122,0.15);}
+.mtm-tab.active-take{color:var(--take2);border-bottom-color:var(--take2);background:rgba(46,107,46,0.15);}
+.mtm-tab.active-matsu{color:var(--matsu2);border-bottom-color:var(--matsu2);background:rgba(139,106,0,0.2);}
+.tab-badge{
+  font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;
+  font-family:'DotGothic16',monospace;
+}
+.badge-ume{background:var(--ume);color:white;}
+.badge-take{background:var(--take);color:white;}
+.badge-matsu{background:var(--matsu);color:white;}
+.tab-desc{font-size:10px;font-weight:400;opacity:0.75;margin-top:2px;display:block;letter-spacing:0.05em;}
+
+/* ===== メインコンテンツ ===== */
+main{padding:0;}
+
+/* 松竹梅セクション */
+.section{padding:28px 28px 40px;border-bottom:3px double var(--border);}
+.section:last-child{border-bottom:none;}
+
+.section-banner{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:24px;padding:16px 20px;
+  border-radius:2px;position:relative;overflow:hidden;
+}
+.section-banner::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(255,255,255,0.05) 8px,rgba(255,255,255,0.05) 9px);
+}
+.banner-ume{background:linear-gradient(135deg,var(--ume),var(--ume2));}
+.banner-take{background:linear-gradient(135deg,var(--take),var(--take2));}
+.banner-matsu{background:linear-gradient(135deg,var(--matsu),var(--matsu2));}
+
+.banner-kanji{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:52px;font-weight:900;color:rgba(255,255,255,0.2);
+  line-height:1;position:relative;z-index:1;
+}
+.banner-info{position:relative;z-index:1;flex:1;}
+.banner-title{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:22px;font-weight:800;color:white;
+  letter-spacing:0.15em;margin-bottom:4px;
+}
+.banner-sub{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;}
+
+/* 値札風バッジ */
+.nefuda{
+  position:relative;z-index:1;
+  background:var(--washi);border-radius:2px;
+  padding:10px 18px;text-align:center;
+  box-shadow:2px 2px 0 rgba(0,0,0,0.2);
+}
+.nefuda::before{
+  content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  width:14px;height:16px;
+  background:var(--washi);border-radius:0 0 50% 50%;
+  border-top:1px solid rgba(0,0,0,0.1);
+}
+.nefuda::after{
+  content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  width:3px;height:20px;background:#8b6914;border-radius:1px;
+}
+.nefuda-n{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:11px;font-weight:700;margin-bottom:2px;
+}
+.nefuda-cnt{font-family:'DotGothic16',monospace;font-size:18px;font-weight:700;}
+
+/* 掛け声テキスト */
+.kakegoe{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:13px;font-weight:700;
+  color:rgba(255,255,255,0.9);
+  position:relative;z-index:1;
+  writing-mode:horizontal-tb;
+  border:1px solid rgba(255,255,255,0.4);
+  padding:4px 12px;border-radius:2px;
+  letter-spacing:0.05em;
+}
+
+/* ===== スキルカードグリッド ===== */
+.skill-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px;
+}
+
+/* ===== スキルカード（商品陳列台風） ===== */
+.skill-card{
+  background:var(--washi);
+  border:1.5px solid var(--border);
+  border-radius:2px;
+  box-shadow:3px 3px 0 var(--washi3);
+  transition:all 0.2s;cursor:pointer;overflow:hidden;
+  position:relative;
+}
+.skill-card:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--washi3);}
+.skill-card.ume-card{border-top:3px solid var(--ume);}
+.skill-card.take-card{border-top:3px solid var(--take);}
+.skill-card.matsu-card{border-top:3px solid var(--matsu);}
+
+/* サムネイル */
+.card-thumb{
+  height:160px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);
+}
+.thumb-grid{
+  position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(160,130,80,0.15) 19px,rgba(160,130,80,0.15) 20px),
+    repeating-linear-gradient(90deg,transparent,transparent 19px,rgba(160,130,80,0.07) 19px,rgba(160,130,80,0.07) 20px);
+}
+.thumb-svg{position:relative;z-index:1;width:100%;height:100%;}
+
+/* 人気バッジ */
+.badge-ninki{
+  position:absolute;top:8px;left:8px;z-index:3;
+  background:var(--red);color:white;
+  font-family:'DotGothic16',monospace;font-size:10px;font-weight:700;
+  padding:3px 8px;border-radius:2px;
+  animation:flash 2s ease-in-out infinite;
+}
+/* 新着バッジ */
+.badge-shin{
+  position:absolute;top:8px;right:8px;z-index:3;
+  width:38px;height:38px;border-radius:50%;
+  border:2px solid var(--red2);background:rgba(250,235,233,0.92);
+  display:flex;align-items:center;justify-content:center;
+  transform:rotate(-8deg);
+  font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:800;color:var(--red2);
+}
+/* 難易度 */
+.diff-badge{
+  position:absolute;bottom:8px;left:8px;z-index:3;
+  background:rgba(26,18,8,0.75);border-radius:2px;
+  padding:2px 8px;
+  font-family:'DotGothic16',monospace;font-size:10px;color:var(--washi);
+}
+
+/* カード本文 */
+.card-body{padding:12px 14px 0;}
+.card-grade{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:'DotGothic16',monospace;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:2px;margin-bottom:7px;color:white;
+}
+.g-ume{background:var(--ume);}
+.g-take{background:var(--take);}
+.g-matsu{background:var(--matsu);}
+
+.card-name{
+  font-family:'Shippori Mincho B1',serif;
+  font-size:15px;font-weight:700;letter-spacing:0.04em;
+  margin-bottom:4px;line-height:1.3;
+}
+.card-desc{
+  font-size:12px;color:var(--sumi3);line-height:1.7;
+  margin-bottom:10px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:7px;border-top:1px dashed var(--border);margin-bottom:8px;
+}
+.card-cat{font-family:'DotGothic16',monospace;font-size:11px;color:var(--indigo);background:#eaecf5;padding:2px 6px;border-radius:2px;}
+.card-view{font-family:'DotGothic16',monospace;font-size:10px;color:var(--sumi3);}
+
+/* 値札（カード内） */
+.card-nefuda{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+  background:var(--washi2);border:1px dashed var(--border);
+  border-radius:2px;padding:6px 10px;
+}
+.nefuda-label{font-size:11px;color:var(--sumi3);}
+.nefuda-free{font-family:'Shippori Mincho B1',serif;font-size:15px;font-weight:800;color:var(--red);}
+
+/* ボタン */
+.card-btns{display:flex;gap:7px;padding-bottom:12px;}
+.btn-get{
+  flex:1;border:none;border-radius:2px;
+  padding:9px 10px;font-family:'Shippori Mincho B1',serif;
+  font-size:13px;font-weight:700;cursor:pointer;
+  transition:all 0.15s;letter-spacing:0.05em;color:white;
+}
+.btn-get-ume{background:var(--ume);}
+.btn-get-ume:hover{background:var(--ume2);}
+.btn-get-take{background:var(--take);}
+.btn-get-take:hover{background:var(--take2);}
+.btn-get-matsu{background:var(--matsu);}
+.btn-get-matsu:hover{background:var(--matsu2);}
+
+.btn-save{
+  background:var(--washi2);border:1.5px solid var(--border);
+  border-radius:2px;padding:9px 10px;cursor:pointer;
+  font-size:14px;transition:all 0.15s;
+}
+.btn-save:hover{border-color:var(--amber);background:#fdf3e3;}
+.btn-save.saved{border-color:var(--amber);background:#fdf3e3;color:var(--amber);}
+
+/* ===== インストールモーダル ===== */
+.modal-bg{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(26,18,8,0.75);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+.modal-bg.open{display:flex;}
+.modal-box{
+  background:var(--washi);border:3px solid var(--sumi);
+  max-width:540px;width:92%;border-radius:2px;overflow:hidden;
+  box-shadow:8px 8px 0 var(--sumi2);animation:mIn .22s ease-out;
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes mIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+
+.modal-hd{padding:16px 22px;border-bottom:2px solid var(--red);}
+.modal-hd-title{font-family:'Shippori Mincho B1',serif;font-size:20px;font-weight:800;letter-spacing:0.1em;color:var(--washi);}
+.modal-hd-sub{font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px;letter-spacing:0.05em;}
+
+.modal-body{padding:22px;}
+.modal-desc{font-size:13px;color:var(--sumi3);line-height:1.8;margin-bottom:18px;border-left:3px solid var(--red);padding-left:12px;}
+
+/* ステップ表示 */
+.steps-title{font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;margin-bottom:10px;color:var(--sumi);letter-spacing:0.08em;}
+.step-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border);}
+.step-item:last-child{border-bottom:none;}
+.step-num{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DotGothic16',monospace;font-size:12px;font-weight:700;color:white;
+  margin-top:1px;
+}
+.step-txt{font-size:13px;color:var(--sumi3);line-height:1.7;}
+
+.cmd-block{
+  background:var(--sumi);border-radius:2px;padding:14px 16px;
+  margin:14px 0;position:relative;
+}
+.cmd-label{font-family:'DotGothic16',monospace;font-size:10px;color:#777;margin-bottom:6px;letter-spacing:0.2em;}
+.cmd-txt{font-family:'DotGothic16',monospace;font-size:12px;color:#a8d8a8;line-height:1.6;word-break:break-all;}
+.btn-copy{
+  position:absolute;top:10px;right:10px;background:none;
+  border:1px solid #555;border-radius:2px;padding:3px 10px;
+  font-family:'DotGothic16',monospace;font-size:10px;color:#888;cursor:pointer;transition:all 0.15s;
+}
+.btn-copy:hover{border-color:#a8d8a8;color:#a8d8a8;}
+.btn-copy.ok{border-color:#4a9a4a;color:#4a9a4a;}
+
+.modal-btns{display:flex;gap:8px;margin-top:18px;}
+.btn-install-ok{
+  flex:1;border:none;border-radius:2px;padding:12px;
+  font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:0.08em;color:white;transition:all 0.2s;
+}
+.btn-close{
+  background:var(--washi2);border:1.5px solid var(--border);border-radius:2px;
+  padding:12px 18px;font-family:'Kaisei Opti',serif;font-size:13px;color:var(--sumi3);
+  cursor:pointer;transition:all 0.15s;
+}
+.btn-close:hover{border-color:var(--sumi);color:var(--sumi);}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+  background:var(--sumi);color:var(--washi);border-left:4px solid var(--red);
+  border-radius:2px;padding:11px 22px;font-family:'Kaisei Opti',serif;font-size:13px;
+  display:none;align-items:center;gap:10px;box-shadow:4px 4px 0 var(--sumi2);
+  z-index:999;white-space:nowrap;animation:tUp .2s ease-out;
+}
+@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast.show{display:flex;}
+.toast.ok{border-left-color:var(--take);}
+
+/* stats bar */
+.stats-bar{
+  background:var(--washi2);border-bottom:2px solid var(--border);
+  padding:10px 28px;display:flex;gap:0;align-items:center;
+  box-shadow:0 2px 4px var(--shadow);
+}
+.stat-i{display:flex;align-items:baseline;gap:7px;padding:4px 22px;border-right:1px solid var(--border);}
+.stat-i:first-child{padding-left:0;}
+.stat-i:last-child{border-right:none;}
+.stat-n{font-family:'Shippori Mincho B1',serif;font-size:22px;font-weight:800;color:var(--red);}
+.stat-l{font-size:11px;color:var(--sumi3);letter-spacing:0.08em;}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--washi2);}
+::-webkit-scrollbar-thumb{background:var(--washi3);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO 朝市パノラマ ===== -->
+<div class="hero">
+  <!-- 朝日 -->
+  <div class="asahi"></div>
+
+  <!-- 雲 -->
+  <svg class="cloud" style="top:5%;left:8%;opacity:0.9;" width="110" height="38" viewBox="0 0 110 38">
+    <ellipse cx="45" cy="26" rx="42" ry="16" fill="white"/>
+    <ellipse cx="68" cy="20" rx="30" ry="14" fill="white"/>
+    <ellipse cx="25" cy="22" rx="24" ry="12" fill="white"/>
+  </svg>
+  <svg class="cloud" style="top:8%;right:12%;opacity:0.75;" width="88" height="30" viewBox="0 0 88 30">
+    <ellipse cx="38" cy="20" rx="34" ry="13" fill="white"/>
+    <ellipse cx="58" cy="15" rx="24" ry="11" fill="white"/>
+  </svg>
+
+  <!-- 富士山 -->
+  <div class="fuji-bg"></div>
+  <div class="fuji-snow"></div>
+
+  <!-- 地面（草原） -->
+  <svg style="position:absolute;bottom:0;left:0;width:100%;height:72%;" viewBox="0 0 1200 360" preserveAspectRatio="none">
+    <rect width="1200" height="360" fill="#c8b878"/>
+    <rect width="1200" height="28" fill="#5a8a4a"/>
+    <!-- 道 -->
+    <polygon points="450,0 750,0 920,360 280,360" fill="rgba(180,160,110,0.55)"/>
+    <line x1="600" y1="0" x2="600" y2="360" stroke="rgba(255,255,255,0.35)" stroke-width="5" stroke-dasharray="24 18"/>
+    <!-- 畳模様 -->
+    <g stroke="rgba(160,130,70,0.25)" stroke-width="0.8">
+      <line x1="0" y1="80" x2="1200" y2="80"/><line x1="0" y1="160" x2="1200" y2="160"/>
+      <line x1="0" y1="240" x2="1200" y2="240"/><line x1="0" y1="320" x2="1200" y2="320"/>
+      <line x1="200" y1="0" x2="200" y2="360"/><line x1="400" y1="0" x2="400" y2="360"/>
+      <line x1="600" y1="0" x2="600" y2="360"/><line x1="800" y1="0" x2="800" y2="360"/>
+      <line x1="1000" y1="0" x2="1000" y2="360"/>
+    </g>
+  </svg>
+
+  <!-- 桜の木（左） -->
+  <svg style="position:absolute;bottom:30%;left:3%;" width="110" height="170" viewBox="0 0 110 170">
+    <rect x="50" y="90" width="10" height="80" rx="3" fill="#5a3a1a"/>
+    <line x1="55" y1="105" x2="22" y2="78" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
+    <line x1="55" y1="100" x2="88" y2="74" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="55" cy="50" rx="48" ry="45" fill="#f4aac4" opacity="0.88"/>
+    <ellipse cx="22" cy="70" rx="26" ry="22" fill="#f8b8cc" opacity="0.82"/>
+    <ellipse cx="88" cy="68" rx="24" ry="20" fill="#fca8c0" opacity="0.82"/>
+    <ellipse cx="42" cy="30" rx="22" ry="18" fill="#ffbcd0" opacity="0.88"/>
+    <ellipse cx="72" cy="28" rx="20" ry="17" fill="#f8b0c8" opacity="0.88"/>
+    <g fill="#e0709a" opacity="0.9">
+      <circle cx="38" cy="46" r="4"/><circle cx="60" cy="33" r="4"/><circle cx="78" cy="44" r="4"/>
+      <circle cx="25" cy="63" r="3"/><circle cx="84" cy="60" r="3"/><circle cx="52" cy="25" r="4"/>
+    </g>
+  </svg>
+
+  <!-- 桜（右） -->
+  <svg style="position:absolute;bottom:30%;right:3%;" width="100" height="155" viewBox="0 0 100 155">
+    <rect x="45" y="82" width="10" height="73" rx="3" fill="#5a3a1a"/>
+    <line x1="50" y1="96" x2="20" y2="72" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
+    <line x1="50" y1="92" x2="80" y2="68" stroke="#5a3a1a" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="50" cy="46" rx="44" ry="40" fill="#f8b4c8" opacity="0.88"/>
+    <ellipse cx="20" cy="63" rx="23" ry="19" fill="#f4a8c0" opacity="0.82"/>
+    <ellipse cx="80" cy="61" rx="22" ry="18" fill="#fcc0d0" opacity="0.82"/>
+    <g fill="#e0709a" opacity="0.9">
+      <circle cx="35" cy="42" r="4"/><circle cx="56" cy="29" r="4"/><circle cx="72" cy="40" r="3"/>
+      <circle cx="22" cy="57" r="3"/><circle cx="78" cy="55" r="3"/>
+    </g>
+  </svg>
+
+  <!-- 提灯の綱 -->
+  <div class="chochin-row" style="top:28%;">
+    <div class="chochin-rope" style="position:absolute;top:16px;left:40px;right:40px;height:2px;background:#8b6914;z-index:0;"></div>
+    <div class="chochin"></div>
+    <div class="chochin" style="animation-delay:0.5s;"></div>
+    <div class="chochin" style="animation-delay:1s;"></div>
+    <div class="chochin" style="animation-delay:1.5s;"></div>
+    <div class="chochin" style="animation-delay:0.8s;"></div>
+    <div class="chochin" style="animation-delay:1.3s;"></div>
+    <div class="chochin" style="animation-delay:0.3s;"></div>
+  </div>
+
+  <!-- 屋台 -->
+  <svg style="position:absolute;bottom:0;left:0;width:100%;height:65%;" viewBox="0 0 1200 250" preserveAspectRatio="xMidYMax meet">
+    <!-- 左屋台 -->
+    <g transform="translate(60,20)">
+      <polygon points="85,0 0,55 170,55" fill="#c0392b"/>
+      <rect x="5" y="55" width="160" height="30" fill="#e74c3c"/>
+      <g fill="none" stroke="#c0392b" stroke-width="0">
+        <rect x="5" y="55" width="160" height="30" fill="url(#stripes)"/>
+      </g>
+      <rect x="10" y="85" width="150" height="80" fill="#deb887" stroke="#8b6914" stroke-width="1.5"/>
+      <text x="85" y="132" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="14" font-weight="700" fill="#3d2e1a">梅コーナー</text>
+      <rect x="2" y="163" width="8" height="50" fill="#8b6914"/>
+      <rect x="170" y="163" width="8" height="50" fill="#8b6914"/>
+    </g>
+    <!-- 中屋台 -->
+    <g transform="translate(490,10)">
+      <polygon points="110,0 0,60 220,60" fill="#2e6b2e"/>
+      <rect x="5" y="60" width="210" height="35" fill="#4a9a4a"/>
+      <rect x="10" y="95" width="200" height="90" fill="#deb887" stroke="#8b6914" stroke-width="1.5"/>
+      <text x="110" y="147" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="15" font-weight="700" fill="#1a2e1a">竹コーナー</text>
+      <rect x="2" y="183" width="10" height="50" fill="#8b6914"/>
+      <rect x="208" y="183" width="10" height="50" fill="#8b6914"/>
+    </g>
+    <!-- 右屋台 -->
+    <g transform="translate(940,5)">
+      <polygon points="90,0 0,58 180,58" fill="#8b6a00"/>
+      <rect x="5" y="58" width="170" height="32" fill="#c49a00"/>
+      <rect x="10" y="90" width="160" height="85" fill="#deb887" stroke="#8b6914" stroke-width="1.5"/>
+      <text x="90" y="140" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="14" font-weight="700" fill="#3a2800">松コーナー</text>
+      <rect x="2" y="173" width="8" height="50" fill="#8b6914"/>
+      <rect x="168" y="173" width="8" height="50" fill="#8b6914"/>
+    </g>
+
+    <!-- のぼり旗（梅） -->
+    <g transform="translate(30,50)">
+      <rect x="0" y="0" width="3" height="150" fill="#6b4020"/>
+      <rect x="3" y="0" width="20" height="90" rx="0 0 3 0" fill="#8b4a7a"/>
+      <text x="13" y="30" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="9" font-weight="800" fill="white" writing-mode="vertical-rl">梅</text>
+      <text x="13" y="60" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="8" fill="white" writing-mode="vertical-rl">初</text>
+    </g>
+    <!-- のぼり旗（竹） -->
+    <g transform="translate(450,40)" style="animation:nobori 2.8s ease-in-out infinite;transform-origin:450px 40px">
+      <rect x="0" y="0" width="3" height="160" fill="#6b4020"/>
+      <rect x="3" y="0" width="22" height="100" fill="#2e6b2e"/>
+      <text x="14" y="35" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="10" font-weight="800" fill="white" writing-mode="vertical-rl">竹</text>
+      <text x="14" y="72" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="8" fill="white" writing-mode="vertical-rl">中</text>
+    </g>
+    <!-- のぼり旗（松） -->
+    <g transform="translate(900,35)">
+      <rect x="0" y="0" width="3" height="155" fill="#6b4020"/>
+      <rect x="3" y="0" width="22" height="95" fill="#8b6a00"/>
+      <text x="14" y="33" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="10" font-weight="800" fill="white" writing-mode="vertical-rl">松</text>
+      <text x="14" y="66" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="8" fill="white" writing-mode="vertical-rl">上</text>
+    </g>
+
+    <!-- 赤いポスト -->
+    <g transform="translate(390,100)">
+      <rect x="2" y="20" width="36" height="36" rx="2" fill="#c0392b"/>
+      <ellipse cx="20" cy="20" rx="18" ry="8" fill="#d44"/>
+      <rect x="8" y="30" width="24" height="5" rx="1" fill="#8a1a1a"/>
+      <text x="20" y="48" text-anchor="middle" font-size="14" font-weight="bold" fill="white" font-family="serif">〒</text>
+      <rect x="17" y="56" width="6" height="30" fill="#888"/>
+    </g>
+
+    <!-- 白黒テレビ（右端） -->
+    <g transform="translate(1140,80)">
+      <rect x="0" y="0" width="55" height="45" rx="3" fill="#2a2a2a"/>
+      <rect x="5" y="4" width="34" height="28" rx="2" fill="#1a1a1a"/>
+      <line x1="5" y1="8" x2="39" y2="8" stroke="#444" stroke-width="0.7"/>
+      <line x1="5" y1="13" x2="39" y2="13" stroke="#444" stroke-width="0.7"/>
+      <line x1="5" y1="18" x2="39" y2="18" stroke="#444" stroke-width="0.7"/>
+      <line x1="5" y1="23" x2="39" y2="23" stroke="#444" stroke-width="0.7"/>
+      <line x1="5" y1="28" x2="39" y2="28" stroke="#444" stroke-width="0.7"/>
+      <ellipse cx="22" cy="16" rx="5" ry="7" fill="#666" opacity="0.6"/>
+      <line x1="18" y1="0" x2="10" y2="-12" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+      <line x1="24" y1="0" x2="34" y2="-12" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="47" cy="14" r="4" fill="#444"/>
+      <circle cx="47" cy="26" r="3" fill="#444"/>
+      <rect x="5" y="45" width="14" height="12" rx="1" fill="#333"/>
+      <rect x="36" y="45" width="14" height="12" rx="1" fill="#333"/>
+    </g>
+  </svg>
+
+  <!-- 掛け声 -->
+  <div class="kakeoe">よってらっしゃい！みてらっしゃい！　スキル朝市、開店ですよ〜！</div>
+
+  <!-- タイトル -->
+  <div class="hero-overlay">
+    <div>
+      <div class="hero-title-txt">スキル朝市<br>ＡＩの道具、よってらっしゃい！</div>
+      <div class="hero-sub-txt">パソコンが苦手な方でも大丈夫。<br>松・竹・梅で選べる、あなたにぴったりのＡＩスキルが揃っています。</div>
+    </div>
+    <div class="hero-hanko">朝市</div>
+  </div>
+
+  <!-- 花びら -->
+  <div id="petals"></div>
+</div>
+
+<!-- 連携ナビ帯 -->
+<div style="background:#3d2e1a;text-align:center;padding:6px 12px;font-size:12px;display:flex;justify-content:center;gap:20px;align-items:center;">
+  <span style="color:#ffd700;font-family:'Shippori Mincho B1',serif;font-weight:700;border-bottom:2px solid #ffd700;padding-bottom:2px;">スキル朝市</span>
+  <span style="color:rgba(255,255,255,0.3);">|</span>
+  <a href="../skills_toshokan/skills_showa2.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-family:'Kaisei Opti',serif;" onmouseover="this.style.color='#ffd700'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">スキル図書館で管理する &rarr;</a>
+</div>
+
+<!-- Claude Code セットアップバナー -->
+<div id="setupBanner" style="background:linear-gradient(135deg,#c0392b,#e74c3c);padding:16px 20px;text-align:center;cursor:pointer;position:relative;" onclick="document.getElementById('setupModal').classList.add('open')">
+  <div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;">
+    <div style="background:white;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="28" height="28" viewBox="0 0 28 28"><rect x="2" y="6" width="24" height="18" rx="3" fill="#1a1a1a"/><rect x="4" y="8" width="20" height="12" rx="2" fill="#0a0a0a"/><text x="8" y="16" font-family="monospace" font-size="6" fill="#4af">$_</text><text x="8" y="18" font-family="monospace" font-size="4" fill="#8f8">▷</text><rect x="8" y="24" width="12" height="2" rx="1" fill="#888"/></svg>
+    </div>
+    <div style="text-align:left;">
+      <div style="color:white;font-family:'Shippori Mincho B1',serif;font-size:18px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,0.3);">はじめに：Claude Code を準備しよう</div>
+      <div style="color:rgba(255,255,255,0.9);font-size:13px;font-family:'Kaisei Opti',serif;">スキルを使うには、まず Claude Code のインストールが必要です</div>
+    </div>
+    <div style="background:white;color:#c0392b;font-family:'Kaisei Opti',serif;font-weight:700;padding:10px 24px;border-radius:30px;font-size:15px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+      セットアップ方法を見る →
+    </div>
+  </div>
+  <div style="position:absolute;top:4px;right:12px;color:rgba(255,255,255,0.5);font-size:11px;cursor:pointer;" onclick="event.stopPropagation();document.getElementById('setupBanner').style.display='none';">✕ 閉じる</div>
+</div>
+
+<!-- セットアップモーダル -->
+<div class="modal-bg" id="setupModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box" style="max-width:680px;">
+    <div class="modal-hd" style="background:linear-gradient(135deg,#c0392b,#e74c3c);">
+      <div class="modal-hd-title">Claude Code セットアップガイド</div>
+      <div class="modal-hd-sub">スキルを使う前に、この準備をしましょう（10分でできます）</div>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+
+      <!-- ステップ0 -->
+      <div style="background:#fff8f0;border:2px solid #e8a830;border-radius:10px;padding:16px;margin-bottom:20px;">
+        <div style="font-family:'Shippori Mincho B1',serif;font-size:16px;font-weight:700;color:#8b6a00;margin-bottom:8px;">⓪ 必要なもの</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;background:white;border-radius:8px;padding:12px;text-align:center;border:1px solid #e8d8b0;">
+            <svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="28" rx="3" fill="#2c3e7a"/><rect x="6" y="6" width="28" height="22" rx="2" fill="#1a2a5a"/><rect x="10" y="32" width="20" height="3" rx="1" fill="#888"/><rect x="6" y="33" width="28" height="2" rx="1" fill="#aaa"/></svg>
+            <div style="font-size:13px;font-weight:700;margin-top:4px;">パソコン</div>
+            <div style="font-size:11px;color:#888;">Windows / Mac</div>
+          </div>
+          <div style="flex:1;min-width:140px;background:white;border-radius:8px;padding:12px;text-align:center;border:1px solid #e8d8b0;">
+            <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#d4a574"/><text x="20" y="25" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="white">A</text></svg>
+            <div style="font-size:13px;font-weight:700;margin-top:4px;">Claudeアカウント</div>
+            <div style="font-size:11px;color:#888;">月額$20のProプラン</div>
+          </div>
+          <div style="flex:1;min-width:140px;background:white;border-radius:8px;padding:12px;text-align:center;border:1px solid #e8d8b0;">
+            <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#2e6b2e" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-family="monospace" font-size="16" fill="#2e6b2e">10</text></svg>
+            <div style="font-size:13px;font-weight:700;margin-top:4px;">10分の時間</div>
+            <div style="font-size:11px;color:#888;">一度だけの作業</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ステップ1 -->
+      <div style="margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="background:#c0392b;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">1</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:16px;font-weight:700;">Node.js をインストール</div>
+        </div>
+        <div style="background:#f8f4ee;border-radius:8px;padding:14px;margin-left:42px;">
+          <div style="font-size:13px;margin-bottom:8px;">下のリンクからダウンロードして、「次へ」を押すだけ：</div>
+          <a href="https://nodejs.org/ja" target="_blank" style="display:inline-block;background:#2e6b2e;color:white;padding:8px 20px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:700;">nodejs.org を開く →</a>
+          <div style="font-size:12px;color:#888;margin-top:6px;">※「LTS（推奨版）」の大きなボタンをクリックしてください</div>
+        </div>
+      </div>
+
+      <!-- ステップ2 -->
+      <div style="margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="background:#c0392b;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">2</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:16px;font-weight:700;">Claude Code をインストール</div>
+        </div>
+        <div style="background:#f8f4ee;border-radius:8px;padding:14px;margin-left:42px;">
+          <div style="font-size:13px;margin-bottom:8px;">Windowsなら「コマンドプロンプト」、Macなら「ターミナル」を開いて、<br>このコマンドをコピー＆貼り付け → Enter：</div>
+          <div style="background:#1a1a1a;color:#4af;padding:12px 16px;border-radius:6px;font-family:'DotGothic16',monospace;font-size:14px;position:relative;word-break:break-all;">
+            npm install -g @anthropic-ai/claude-code
+            <button onclick="navigator.clipboard.writeText('npm install -g @anthropic-ai/claude-code');this.textContent='コピー済 ✓';setTimeout(()=>this.textContent='コピー',2000)" style="position:absolute;right:8px;top:8px;background:#4af;color:#1a1a1a;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:700;">コピー</button>
+          </div>
+          <div style="font-size:12px;color:#888;margin-top:6px;">※ コマンドプロンプトの開き方：Windowsキー → 「cmd」と入力 → Enter</div>
+        </div>
+      </div>
+
+      <!-- ステップ3 -->
+      <div style="margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="background:#c0392b;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">3</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:16px;font-weight:700;">Claude Code を起動してログイン</div>
+        </div>
+        <div style="background:#f8f4ee;border-radius:8px;padding:14px;margin-left:42px;">
+          <div style="font-size:13px;margin-bottom:8px;">同じ画面で、このコマンドを入力 → Enter：</div>
+          <div style="background:#1a1a1a;color:#8f8;padding:12px 16px;border-radius:6px;font-family:'DotGothic16',monospace;font-size:14px;position:relative;">
+            claude
+            <button onclick="navigator.clipboard.writeText('claude');this.textContent='コピー済 ✓';setTimeout(()=>this.textContent='コピー',2000)" style="position:absolute;right:8px;top:8px;background:#8f8;color:#1a1a1a;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:700;">コピー</button>
+          </div>
+          <div style="font-size:13px;margin-top:8px;">→ ブラウザが開きます → Claudeアカウントでログイン → 完了！</div>
+        </div>
+      </div>
+
+      <!-- ステップ4 -->
+      <div style="margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="background:#2e6b2e;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">✓</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:16px;font-weight:700;color:#2e6b2e;">準備完了！スキルをインストールしよう</div>
+        </div>
+        <div style="background:#edfaf4;border:2px solid #2e6b2e;border-radius:8px;padding:14px;margin-left:42px;">
+          <div style="font-size:13px;margin-bottom:8px;">Claude Codeが動いたら、スキルのインストールコマンドを貼り付けるだけ：</div>
+          <div style="background:#1a1a1a;color:#ff8;padding:12px 16px;border-radius:6px;font-family:'DotGothic16',monospace;font-size:13px;">
+            npx skills add yyamagen358/asaichi-skills@voice-transcription -g -y
+          </div>
+          <div style="font-size:13px;margin-top:8px;color:#2e6b2e;font-weight:700;">↓ 下のスキル一覧から、気になるスキルを選んでみましょう！</div>
+        </div>
+      </div>
+
+      <!-- 困ったら -->
+      <div style="background:#f0f0f0;border-radius:8px;padding:12px;margin-top:12px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px;">困ったら？</div>
+        <div style="font-size:12px;color:#666;">
+          ・「コマンドが見つかりません」→ Node.jsのインストールをやり直してください<br>
+          ・「ログインできない」→ claude.ai でアカウントを作成してください<br>
+          ・ それでもダメなら → げんさんに聞いてください！
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <button onclick="document.getElementById('setupModal').classList.remove('open')" style="background:#c0392b;color:white;border:none;padding:12px 40px;border-radius:8px;font-size:15px;font-family:'Kaisei Opti',serif;font-weight:700;cursor:pointer;">わかった！スキルを探す →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ナビ -->
+<nav>
+  <div class="nav-logo">
+    スキル朝市
+    <span class="nav-logo-sub">— ＡＩの道具屋さん</span>
+  </div>
+  <div class="nav-right">
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/><line x1="8.5" y1="8.5" x2="12" y2="12" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="欲しいスキルを探す..." id="searchInput" oninput="filterAll()">
+    </div>
+    <a id="adminToggle" href="#" onclick="toggleAdmin();return false;" style="color:white;font-size:13px;text-decoration:none;margin-left:12px;font-family:'DotGothic16',monospace;background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);white-space:nowrap;" title="管理モード切替"></a>
+    <script>
+      document.getElementById('adminToggle').textContent=new URLSearchParams(location.search).get('admin')==='1'?'🔧 管理モード':'🔒 本番モード';
+      function toggleAdmin(){
+        const url=new URL(location.href);
+        if(url.searchParams.get('admin')==='1'){url.searchParams.delete('admin');}
+        else{url.searchParams.set('admin','1');}
+        location.href=url.toString();
+      }
+    </script>
+  </div>
+</nav>
+
+<!-- 松竹梅タブ -->
+<div class="matsutakeme">
+  <button class="mtm-tab active-ume" id="tab-all" onclick="setTab('all',this)">
+    <span>すべて</span>
+    <span class="tab-badge badge-ume" id="cnt-all">0</span>
+    <span class="tab-desc">松竹梅まとめて</span>
+  </button>
+  <button class="mtm-tab" id="tab-ume" onclick="setTab('ume',this)">
+    <span>梅　🌸</span>
+    <span class="tab-badge badge-ume" id="cnt-ume">0</span>
+    <span class="tab-desc">初めての方・高齢者向け</span>
+  </button>
+  <button class="mtm-tab" id="tab-take" onclick="setTab('take',this)">
+    <span>竹　🎋</span>
+    <span class="tab-badge badge-take" id="cnt-take">0</span>
+    <span class="tab-desc">少し慣れてきた方向け</span>
+  </button>
+  <button class="mtm-tab" id="tab-matsu" onclick="setTab('matsu',this)">
+    <span>松　🌲</span>
+    <span class="tab-badge badge-matsu" id="cnt-matsu">0</span>
+    <span class="tab-desc">もっと活用したい方向け</span>
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-i"><span class="stat-n" id="s-total">0</span><span class="stat-l">スキル総数</span></div>
+  <div class="stat-i"><span class="stat-n" id="s-saved">0</span><span class="stat-l">気になる登録済み</span></div>
+  <div class="stat-i"><span class="stat-n" style="color:var(--ume);" id="s-ume">0</span><span class="stat-l">梅（初級）</span></div>
+  <div class="stat-i"><span class="stat-n" style="color:var(--take);" id="s-take">0</span><span class="stat-l">竹（中級）</span></div>
+  <div class="stat-i"><span class="stat-n" style="color:var(--matsu);" id="s-matsu">0</span><span class="stat-l">松（上級）</span></div>
+</div>
+
+<!-- MAIN -->
+<main id="mainContent"></main>
+
+<!-- モーダル -->
+<div class="modal-bg" id="skillModal" onclick="bgClose(event)">
+  <div class="modal-box">
+    <div class="modal-hd" id="mHd">
+      <div class="modal-hd-title" id="mTitle"></div>
+      <div class="modal-hd-sub" id="mSub"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc" id="mDesc"></div>
+
+      <!-- STEP 1: インストール -->
+      <div class="steps-title" style="color:#c0392b;">❶ インストール方法</div>
+      <div id="mInstallSteps"></div>
+      <div class="cmd-block" style="border:2px solid #c0392b;background:#fff8f0;">
+        <div class="cmd-label" style="color:#c0392b;font-weight:700;">▷ このコマンドをコピーしてClaude Codeに貼り付けてください</div>
+        <div class="cmd-txt" id="mCmd" style="font-size:13px;"></div>
+        <button class="btn-copy" onclick="copyCmd()">コピー</button>
+      </div>
+
+      <!-- STEP 2: 使い方 -->
+      <div class="steps-title" style="color:#2e6b2e;margin-top:20px;">❷ インストール後の使い方</div>
+      <div id="mUsageSteps"></div>
+
+      <div class="modal-btns">
+        <button class="btn-install-ok" id="mInstBtn" onclick="goToLibrary()">インストール済み帳に登録 ✓</button>
+        <button class="btn-close" onclick="closeModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== スキル制作代行セクション ===== -->
+<div id="orderSection" style="max-width:900px;margin:40px auto;padding:0 20px;">
+  <div style="background:linear-gradient(135deg,#fff8ee,#fdf3e0);border:3px solid #e8a830;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(180,120,20,0.15);">
+
+    <!-- ヘッダー -->
+    <div style="background:linear-gradient(135deg,#8b6a00,#c49a00);padding:20px 28px;text-align:center;">
+      <div style="font-family:'Shippori Mincho B1',serif;font-size:22px;font-weight:800;color:white;letter-spacing:0.1em;">🛠 スキル制作代行</div>
+      <div style="color:#ffeebb;font-size:13px;margin-top:4px;font-family:'Kaisei Opti',serif;">「こんなスキルが欲しい！」をプロが形にします</div>
+    </div>
+
+    <!-- 参考料金（情報のみ・選択不要） -->
+    <div style="padding:20px 20px 0;">
+      <div style="font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;color:var(--sumi3);text-align:center;margin-bottom:10px;">参考料金めやす</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+        <div style="flex:1;min-width:160px;max-width:220px;border:1.5px solid var(--ume);border-radius:8px;padding:12px;text-align:center;background:white;">
+          <div style="font-size:20px;">🌸</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;color:var(--ume);margin:4px 0;">5,000円〜</div>
+          <div style="font-size:11px;color:var(--sumi3);">既存スキルのカスタマイズ</div>
+        </div>
+        <div style="flex:1;min-width:160px;max-width:220px;border:1.5px solid var(--take);border-radius:8px;padding:12px;text-align:center;background:white;">
+          <div style="font-size:20px;">🎋</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;color:var(--take);margin:4px 0;">15,000円〜</div>
+          <div style="font-size:11px;color:var(--sumi3);">オリジナルスキル新規制作</div>
+        </div>
+        <div style="flex:1;min-width:160px;max-width:220px;border:1.5px solid var(--matsu);border-radius:8px;padding:12px;text-align:center;background:white;">
+          <div style="font-size:20px;">🌲</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;color:var(--matsu);margin:4px 0;">30,000円〜</div>
+          <div style="font-size:11px;color:var(--sumi3);">スキル連携パイプライン構築</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--sumi3);margin-top:8px;">※ 正式な料金はリクエスト内容を確認後、お見積りでご案内します</div>
+    </div>
+
+    <!-- リクエストフォーム -->
+    <div style="padding:16px 20px 24px;">
+      <form id="orderForm" onsubmit="submitOrder(event)" style="background:white;border:1.5px solid var(--border);border-radius:8px;padding:20px;">
+        <div style="font-family:'Shippori Mincho B1',serif;font-size:15px;font-weight:700;margin-bottom:14px;color:var(--sumi);">📝 まずはお気軽にリクエストしてください</div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:700;color:var(--sumi3);display:block;margin-bottom:4px;">お名前 <span style="color:var(--red);">*</span></label>
+          <input type="text" id="orderName" required placeholder="例：田中太郎" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:'Kaisei Opti',serif;font-size:14px;box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:700;color:var(--sumi3);display:block;margin-bottom:4px;">メールアドレス <span style="color:var(--red);">*</span></label>
+          <input type="email" id="orderEmail" required placeholder="例：tanaka@example.com" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:'Kaisei Opti',serif;font-size:14px;box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;font-weight:700;color:var(--sumi3);display:block;margin-bottom:4px;">どんなスキルが欲しいですか？ <span style="color:var(--red);">*</span></label>
+          <textarea id="orderDetail" required rows="4" placeholder="例：毎朝、天気予報と今日の予定をLINEに送ってくれるスキルが欲しいです" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:'Kaisei Opti',serif;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+        </div>
+
+        <button type="submit" id="orderSubmitBtn" style="width:100%;background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;border:none;padding:14px;border-radius:8px;font-size:16px;font-family:'Shippori Mincho B1',serif;font-weight:700;cursor:pointer;letter-spacing:0.1em;transition:opacity 0.2s;">
+          無料で見積りをリクエスト →
+        </button>
+        <div style="text-align:center;font-size:11px;color:var(--sumi3);margin-top:6px;">※ この時点では料金は発生しません</div>
+      </form>
+
+      <!-- 送信完了メッセージ -->
+      <div id="orderComplete" style="display:none;background:#edfaf4;border:2px solid var(--take);border-radius:8px;padding:24px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:8px;">✅</div>
+        <div style="font-family:'Shippori Mincho B1',serif;font-size:18px;font-weight:700;color:var(--take);margin-bottom:8px;">リクエストを受け付けました！</div>
+        <div style="font-size:13px;color:var(--sumi3);line-height:1.7;">内容を確認のうえ、<strong>お見積りをメールでお送り</strong>します。<br>通常1〜2営業日以内にご連絡いたします。<br><br>お見積りにご納得いただけましたら、<br>メール内のお支払いリンクからお手続きください。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== データ: 外部JSONから読み込み =====
+let skills = [];
+let candidates = []; // 仕入れ候補
+const CANDIDATES_URL='https://raw.githubusercontent.com/yyamagen358/asaichi-skills/main/candidates.json';
+// URLに ?admin=1 で管理者モード、なければ本番モード
+const adminMode=new URLSearchParams(location.search).get('admin')==='1';
+
+// 承認・不採用の管理状態
+function getAdminState(){return JSON.parse(localStorage.getItem('asaichi_admin')||'{"approved":[],"rejected":[]}');}
+function saveAdminState(state){localStorage.setItem('asaichi_admin',JSON.stringify(state));}
+
+async function loadSkills(){
+  try{
+    const res=await fetch('skills_data.json?t='+Date.now());
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    skills=await res.json();
+  }catch(e){
+    console.warn('skills_data.json読み込み失敗、フォールバック使用:',e.message);
+    skills=JSON.parse(JSON.stringify(fallbackSkills));
+  }
+
+  // 候補スキルを取得（GitHub → ローカルフォールバック）
+  try{
+    let cRes;
+    try{
+      cRes=await fetch(CANDIDATES_URL+'?t='+Date.now());
+      if(!cRes.ok) throw new Error('GitHub fetch failed');
+    }catch(e){
+      cRes=await fetch('candidates.json?t='+Date.now());
+    }
+    const allCandidates=await cRes.json();
+    const state=getAdminState();
+    // 承認済みはskillsに追加、不採用は除外、残りが候補
+    allCandidates.forEach(c=>{
+      if(state.approved.includes(c.ref)){
+        // 承認済み→正規スキルとして追加（重複チェック）
+        if(!skills.find(s=>s.skillId===c.skillId)){
+          const maxId=skills.reduce((m,s)=>Math.max(m,s.id),0);
+          skills.push({
+            id:maxId+1,grade:c.grade,name:c.japanese_name,cat:c.cat,
+            skillId:c.skillId,tagline:c.tagline,desc:c.desc,
+            installCmd:c.installCmd,
+            installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+            usage:c.usage,ninki:false,shin:true,views:'新着'
+          });
+        }
+      } else if(!state.rejected.includes(c.ref)){
+        // 未判定→候補として表示
+        candidates.push(c);
+      }
+    });
+  }catch(e){
+    console.log('候補データなし or 取得エラー:',e.message);
+    candidates=[];
+  }
+
+  // 初期化
+  savedIds=JSON.parse(localStorage.getItem('asaichi_saved')||'[]');
+  render();
+  updateStats();
+}
+
+// フォールバック用インラインデータ（JSONが読めない場合）
+const fallbackSkills = [
+  {id:1,grade:'ume',name:'声で文字おこし',cat:'生活便利',
+   skillId:'voice-transcription',
+   tagline:'電話や会議の内容を自動で文字にします',
+   desc:'録音した音声ファイルを文字に書き起こすスキルです。耳が遠くなってきた方、会議や電話の内容を後で確認したい方にぴったりです。難しい操作は一切ありません。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@voice-transcription -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['録音ファイル（mp3やwavなど）をClaudeにドラッグして渡します','「この音声を文字にしてください」と言うだけです','きれいな文章になって戻ってきます'],
+   ninki:true,shin:false,views:'2,847',saved:false},
+
+  {id:2,grade:'ume',name:'手紙・お礼状を書く',cat:'文章作成',
+   skillId:'letter-writing',
+   tagline:'丁寧なお礼状・挨拶文を代わりに作ります',
+   desc:'「親戚にお礼の手紙を書きたいけれど文章が苦手…」そんな方のためのスキルです。送る相手と用件を伝えるだけで、丁寧で心温まる手紙を書いてくれます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@letter-writing -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「誰に」「何のお礼か」をClaudeに話しかけます','すぐに手紙の文章を作ってくれます','気に入らない部分は「もっと丁寧に」と言えば直してくれます'],
+   ninki:true,shin:false,views:'3,412',saved:false},
+
+  {id:3,grade:'ume',name:'ＰＤＦを読んで説明',cat:'書類理解',
+   skillId:'pdf-reader',
+   tagline:'難しい書類の内容をわかりやすく教えます',
+   desc:'病院の書類、役所の通知、マンションの案内文…難しい言葉で書かれた書類をClaudeに渡すと、小学生にも分かる言葉で内容を教えてくれます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@pdf-reader -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['書類のＰＤＦをClaudeにドラッグして渡します','「この書類に何が書いてあるか教えて」と言います','やさしい言葉で説明してくれます'],
+   ninki:false,shin:false,views:'1,986',saved:false},
+
+  {id:4,grade:'ume',name:'写真のアルバム説明文',cat:'思い出整理',
+   skillId:'photo-album',
+   tagline:'昔の写真に添える一言を作ります',
+   desc:'孫への写真アルバムに添える一言、お葬式の式次第に使う思い出の言葉…写真を見せると、その写真にぴったりの文章を書いてくれます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@photo-album -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['写真ファイルをClaudeに渡します','「アルバム用の一言を書いて」と伝えます','温かみのある文章を作ってくれます'],
+   ninki:false,shin:true,views:'892',saved:false},
+
+  {id:5,grade:'ume',name:'薬・病気を調べる',cat:'健康管理',
+   skillId:'medicine-lookup',
+   tagline:'医師に言われたことを分かりやすく調べます',
+   desc:'「先生が難しい病名を言ったけどよく分からなかった」「この薬は何のため？」医療用語をやさしい言葉で説明してくれます。（※医療相談ではありません）',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@medicine-lookup -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['聞きたい病気名・薬の名前をClaudeに伝えます','小学生でも分かるように説明してくれます','「もっと詳しく」「簡単に」と追加で聞けます'],
+   ninki:false,shin:false,views:'2,103',saved:false},
+
+  {id:6,grade:'ume',name:'俳句・川柳を作る',cat:'趣味・創作',
+   skillId:'haiku-senryu',
+   tagline:'季節の俳句や笑える川柳をすぐに作ります',
+   desc:'「孫の誕生日に俳句を贈りたい」「老人会の川柳大会に出したい」テーマを伝えるだけで、粋な俳句や笑える川柳を何作でも作ってくれます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@haiku-senryu -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「○○をテーマに俳句を作って」と言います','いくつか候補を出してくれます','「もっと面白く」「もっと季語を使って」と言えば直してくれます'],
+   ninki:true,shin:false,views:'4,218',saved:false},
+
+  // ===== 竹（中級）=====
+  {id:7,grade:'take',name:'Excelで家計簿',cat:'お金管理',
+   skillId:'excel-budget',
+   tagline:'毎月の支出を自動で表にしてグラフ化',
+   desc:'レシートの内容を入力すると、きれいな家計簿のエクセルファイルを作ってくれます。どの費目が多いかグラフで見れるので、節約ポイントが一目でわかります。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@excel-budget -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「家計簿のエクセルを作って」とClaudeに言います','費目（食費・医療費など）を伝えます','自動でエクセルファイルを作成・ダウンロードできます'],
+   ninki:true,shin:false,views:'3,651',saved:false},
+
+  {id:8,grade:'take',name:'趣味のブログ記事',cat:'文章作成',
+   skillId:'hobby-blog',
+   tagline:'日記・旅行記・趣味記事をすぐに書きます',
+   desc:'「旅行の思い出をブログに書きたいけれど文章が苦手」写真と「こんなことがあった」という話をすれば、読みやすい記事を書いてくれます。note.comへの投稿も対応。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@hobby-blog -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['旅行の写真と「行った場所・感想」を伝えます','記事の文章を作ってくれます','note.comに投稿できる形式で出力できます'],
+   ninki:false,shin:true,views:'1,244',saved:false},
+
+  {id:9,grade:'take',name:'Wordで手順書作り',cat:'記録・文書',
+   skillId:'word-manual',
+   tagline:'やり方手順をきれいなWord文書にします',
+   desc:'「パソコンの使い方を孫に教えるメモを作りたい」「料理のレシピを本格的な手順書にしたい」話すだけで、番号付きの分かりやすい手順書をWord形式で作ってくれます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@word-manual -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「○○の手順書を作って」とClaudeに伝えます','ステップごとに丁寧に書いてくれます','Wordファイルとしてダウンロードできます'],
+   ninki:false,shin:false,views:'2,087',saved:false},
+
+  {id:10,grade:'take',name:'スマホ写真をスライド',cat:'思い出整理',
+   skillId:'photo-slideshow',
+   tagline:'旅行・家族写真をきれいなスライドショーに',
+   desc:'撮りためた旅行写真や孫の運動会写真をパワーポイントのスライドショーにまとめます。コメントや説明も自動で入れてくれるので、家族に見せるのにぴったりです。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@photo-slideshow -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「旅行のスライドを作って」と写真を渡します','タイトルやコメントの内容を伝えます','パワーポイントファイルが完成します'],
+   ninki:true,shin:false,views:'2,891',saved:false},
+
+  {id:11,grade:'take',name:'健康記録をグラフ化',cat:'健康管理',
+   skillId:'health-graph',
+   tagline:'血圧・体重の記録を見やすいグラフに',
+   desc:'毎日記録している血圧・体重・血糖値の手帳の内容を入力すると、きれいな折れ線グラフを作ってくれます。お医者さんに見せる資料としても使えます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@health-graph -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['測定値（日付・数値）をClaudeに伝えます','「グラフにして」と指示します','見やすいグラフのエクセルが完成します'],
+   ninki:false,shin:true,views:'1,567',saved:false},
+
+  // ===== 松（上級）=====
+  {id:12,grade:'matsu',name:'販売用LP作り',cat:'副業・収益',
+   skillId:'lp-builder',
+   tagline:'売れる案内ページをHTMLで自動生成',
+   desc:'自分の得意なことや手作り品を売るための案内ページを作ります。「何を売りたいか」「どんな人に買ってほしいか」を伝えると、プロが作ったようなページが完成します。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@lp-builder -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['売りたい商品・サービスの内容をClaudeに伝えます','ターゲット（誰に売りたいか）を伝えます','HTMLファイルで完成したLPがダウンロードできます'],
+   ninki:true,shin:false,views:'5,234',saved:false},
+
+  {id:13,grade:'matsu',name:'毎日自動で詩を投稿',cat:'コンテンツ自動化',
+   skillId:'daily-poem',
+   tagline:'AIが詩を作りYouTubeに毎日自動投稿',
+   desc:'一度設定すると、毎日自動でオリジナルの詩を作りYouTubeに投稿し続けます。このサイトのオーナーげんさんが実際に毎日19時に使っているシステムです。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@daily-poem -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['Claude Codeのセットアップが必要です','n8nワークフローを設定します','一度動かせば毎日自動で動き続けます'],
+   ninki:true,shin:false,views:'3,892',saved:false},
+
+  {id:14,grade:'matsu',name:'商品リサーチ自動化',cat:'副業・収益',
+   skillId:'product-research',
+   tagline:'売れる商品・競合を自動でリサーチ',
+   desc:'ネットショップやフリマアプリで売れる商品を自動で調べてまとめます。何が今売れているか、価格帯はどのくらいかをレポートにしてくれます。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@product-research -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「○○を売りたい」とClaudeに伝えます','競合商品・価格・売れ筋を自動収集します','わかりやすいレポートにまとめてくれます'],
+   ninki:false,shin:true,views:'2,103',saved:false},
+
+  {id:15,grade:'matsu',name:'マニュアル自動生成',cat:'記録・文書',
+   skillId:'manual-generator',
+   tagline:'5つの質問に答えるだけで手順書が完成',
+   desc:'「孫に自分が死んだ後のパソコンの使い方を残したい」「趣味のサークルに引継ぎ資料を作りたい」5つの質問に答えるだけで、プロ品質の手順書が完成します。',
+   installCmd:'npx skills add yyamagen358/asaichi-skills@manual-generator -g -y',
+   installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+   usage:['「マニュアルを作って」とClaudeに伝えます','5つの質問に順番に答えます','完成したマニュアルがダウンロードできます'],
+   ninki:false,shin:false,views:'1,789',saved:false},
+];
+
+let curTab='all', curSearch='', activeId=null;
+let savedIds=[];
+
+const gradeInfo={
+  ume:{label:'梅',color:'var(--ume)',hd:'linear-gradient(135deg,#6b3a5a,#8b4a7a)',kake:'初めての方でも大丈夫！'},
+  take:{label:'竹',color:'var(--take)',hd:'linear-gradient(135deg,#1e4a1e,#2e6b2e)',kake:'少し慣れてきたら挑戦！'},
+  matsu:{label:'松',color:'var(--matsu)',hd:'linear-gradient(135deg,#5a4500,#8b6a00)',kake:'もっと活用したい上級者向け！'},
+};
+
+function render(){
+  const mc=document.getElementById('mainContent');
+  const q=curSearch;
+  const filteredAll=skills.filter(s=>{
+    const okS=!q||s.name.includes(q)||s.desc.includes(q)||s.tagline.includes(q)||s.cat.includes(q);
+    const okT=curTab==='all'||s.grade===curTab;
+    return okS&&okT;
+  });
+
+  if(curTab==='all'){
+    // 松竹梅それぞれのセクション
+    const grades=['ume','take','matsu'];
+    const kakes={ume:'ゆっくりでいいよ〜！失敗しても大丈夫！',take:'もう少し頑張ろう！慣れれば簡単だよ！',matsu:'ここまで来たら本物のAI使い手だ！'};
+    const cnts={ume:0,take:0,matsu:0};
+    mc.innerHTML=grades.map(g=>{
+      const gi=gradeInfo[g];
+      const list=filteredAll.filter(s=>s.grade===g);
+      cnts[g]=list.length;
+      if(!list.length)return'';
+      return`<div class="section" id="sec-${g}">
+        <div class="section-banner banner-${g}">
+          <div class="banner-kanji">${gi.label}</div>
+          <div class="banner-info">
+            <div class="banner-title">${gi.label}コーナー — ${g==='ume'?'初級・初めての方':g==='take'?'中級・慣れてきた方':'上級・もっと活用したい方'}</div>
+            <div class="banner-sub">${kakes[g]}</div>
+          </div>
+          <div class="nefuda">
+            <div class="nefuda-n" style="color:${gi.color}">${gi.label}</div>
+            <div class="nefuda-cnt" style="color:${gi.color}">${list.length}品</div>
+          </div>
+          <div class="kakegoe">${kakes[g]}</div>
+        </div>
+        <div class="skill-grid">${list.map(s=>cardHtml(s)).join('')}</div>
+      </div>`;
+    }).join('');
+  } else {
+    const g=curTab;
+    const gi=gradeInfo[g];
+    const list=filteredAll;
+    mc.innerHTML=`<div class="section">
+      <div class="section-banner banner-${g}">
+        <div class="banner-kanji">${gi.label}</div>
+        <div class="banner-info">
+          <div class="banner-title">${gi.label}コーナー</div>
+          <div class="banner-sub">${gi.kake}</div>
+        </div>
+        <div class="nefuda">
+          <div class="nefuda-n" style="color:${gi.color}">${gi.label}</div>
+          <div class="nefuda-cnt" style="color:${gi.color}">${list.length}品</div>
+        </div>
+      </div>
+      <div class="skill-grid">${list.map(s=>cardHtml(s)).join('')}</div>
+    </div>`;
+  }
+
+  // 候補スキル（仕入れたて）セクション
+  if(candidates.length>0 && curTab==='all'){
+    mc.innerHTML+=`
+    <div class="section" id="sec-candidates">
+      <div class="section-banner" style="background:linear-gradient(135deg,#d35400,#e67e22);border:3px dashed #fff3e0;">
+        <div class="banner-kanji" style="font-size:28px;">仕</div>
+        <div class="banner-info">
+          <div class="banner-title" style="color:white;">🏷️ 仕入れたて！ — 汗をかいて準備中のスキル</div>
+          <div class="banner-sub" style="color:rgba(255,255,255,0.9);">AIが見つけてきた新しいスキル候補です。テスト後に承認すると正式に朝市に並びます。</div>
+        </div>
+        <div class="nefuda">
+          <div class="nefuda-n" style="color:#d35400;">新</div>
+          <div class="nefuda-cnt" style="color:#d35400;">${candidates.length}品</div>
+        </div>
+      </div>
+      <div class="skill-grid">${candidates.map(c=>candidateCardHtml(c)).join('')}</div>
+    </div>`;
+  }
+
+  updateStats();
+}
+
+// ===== 候補スキルカード =====
+function candidateCardHtml(c){
+  const gradeColors={ume:'var(--ume)',take:'var(--take)',matsu:'var(--matsu)'};
+  const gc=gradeColors[c.grade]||'#d35400';
+  const gi=gradeInfo[c.grade]||{label:'候',color:'#d35400'};
+  return`<div class="skill-card" style="border:2px dashed #e67e22;position:relative;">
+    <div class="card-thumb" style="background:linear-gradient(135deg,#e67e2215,#d3540008);">
+      <div class="thumb-grid"></div>
+      <svg class="thumb-svg" width="200" height="130" viewBox="0 0 200 130" style="position:relative;z-index:1;">
+        <rect x="10" y="10" width="180" height="110" rx="8" fill="#fff3e0" opacity="0.85"/>
+        <circle cx="100" cy="50" r="25" fill="none" stroke="#d35400" stroke-width="2" opacity="0.4"/>
+        <text x="100" y="56" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="22" fill="#d35400" opacity="0.7">${c.japanese_name[0]}</text>
+        <text x="100" y="80" text-anchor="middle" font-family="serif" font-size="9" fill="#d35400">${c.cat}</text>
+        <text x="100" y="110" text-anchor="middle" font-family="'DotGothic16',monospace" font-size="10" fill="#e67e22">${c.installs} installs</text>
+      </svg>
+      <div style="position:absolute;top:0;left:0;right:0;background:linear-gradient(135deg,#d35400,#e67e22);color:white;text-align:center;padding:4px 0;font-family:'DotGothic16',monospace;font-size:11px;font-weight:700;letter-spacing:1px;z-index:10;border-radius:4px 4px 0 0;">
+        🏷️ 仕入れたて！準備中
+      </div>
+      <div class="diff-badge" style="color:${gc};">${gi.label}コース</div>
+    </div>
+    <div class="card-body">
+      <div class="card-grade" style="color:#d35400;border-color:#e67e22;">候補　★${'★'.repeat(c.beginner_score-1)}${'☆'.repeat(5-c.beginner_score)}</div>
+      <div class="card-name">${c.japanese_name}</div>
+      <div class="card-desc">${c.tagline}</div>
+      <div class="card-meta">
+        <span class="card-cat">${c.cat}</span>
+        <span class="card-view" style="color:#d35400;">${c.installs}</span>
+      </div>
+      <div style="font-size:11px;color:#888;margin:4px 0;padding:4px 8px;background:#fff8f0;border-radius:4px;">💡 ${c.recommendation}</div>
+      <div class="card-nefuda">
+        <span class="nefuda-label">お値段</span>
+        <span class="nefuda-free">無料で使えます！</span>
+      </div>
+      <div class="card-btns" style="flex-direction:column;gap:6px;">
+        <button class="btn-get" style="background:#d35400;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Kaisei Opti',serif;" onclick="testCandidate('${c.ref}')">テストインストールする →</button>
+        ${adminMode?`
+        <div style="display:flex;gap:6px;">
+          <button onclick="approveCandidate('${c.ref}')" style="flex:1;background:#2e6b2e;color:white;border:none;padding:8px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">✓ 承認して並べる</button>
+          <button onclick="rejectCandidate('${c.ref}')" style="flex:1;background:#888;color:white;border:none;padding:8px;border-radius:6px;cursor:pointer;font-size:12px;">✕ 不採用</button>
+        </div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===== 候補管理機能 =====
+function testCandidate(ref){
+  const c=candidates.find(x=>x.ref===ref);
+  if(!c)return;
+  // インストールコマンドをコピー
+  navigator.clipboard.writeText(c.installCmd).then(()=>{
+    showToast('ok',`「${c.japanese_name}」のインストールコマンドをコピーしました！Claude Codeに貼り付けてテストしてください。`);
+  });
+}
+
+function approveCandidate(ref){
+  const c=candidates.find(x=>x.ref===ref);
+  if(!c)return;
+  if(!confirm(`「${c.japanese_name}」を朝市に正式に並べますか？`))return;
+  const state=getAdminState();
+  if(!state.approved.includes(ref)) state.approved.push(ref);
+  saveAdminState(state);
+  // 候補リストから除去してスキルに追加
+  const idx=candidates.indexOf(c);
+  if(idx>=0) candidates.splice(idx,1);
+  const maxId=skills.reduce((m,s)=>Math.max(m,s.id),0);
+  skills.push({
+    id:maxId+1,grade:c.grade,name:c.japanese_name,cat:c.cat,
+    skillId:c.skillId,tagline:c.tagline,desc:c.desc,
+    installCmd:c.installCmd,
+    installSteps:['Claude Codeの画面（黒い画面）を開きます','下のコマンドをコピーして貼り付けます','Enterキーを押すとインストール完了です'],
+    usage:c.usage,ninki:false,shin:true,views:'新着'
+  });
+  render();
+  showToast('ok',`「${c.japanese_name}」を朝市に正式に並べました！🎉`);
+}
+
+function rejectCandidate(ref){
+  const c=candidates.find(x=>x.ref===ref);
+  if(!c)return;
+  if(!confirm(`「${c.japanese_name}」を不採用にしますか？`))return;
+  const state=getAdminState();
+  if(!state.rejected.includes(ref)) state.rejected.push(ref);
+  saveAdminState(state);
+  const idx=candidates.indexOf(c);
+  if(idx>=0) candidates.splice(idx,1);
+  render();
+  showToast('info',`「${c.japanese_name}」を不採用にしました`);
+}
+
+function cardHtml(s){
+  const gi=gradeInfo[s.grade];
+  const isSaved=savedIds.includes(s.id);
+  return`<div class="skill-card ${s.grade}-card" id="card-${s.id}">
+    <div class="card-thumb" style="background:linear-gradient(135deg,${gi.color}12,${gi.color}05);">
+      <div class="thumb-grid"></div>
+      ${thumbSvg(s)}
+      ${s.ninki?'<div class="badge-ninki">人気！</div>':''}
+      ${s.shin?'<div class="badge-shin">新</div>':''}
+      ${bridgeIsInstalled(s.name)?'<div style="position:absolute;top:6px;right:6px;background:#3a6b3a;color:white;font-family:\'DotGothic16\',monospace;font-size:10px;padding:2px 8px;border-radius:10px;z-index:5;">導入済</div>':''}
+      <div class="diff-badge" style="color:${gi.color};">${gi.label}コース</div>
+    </div>
+    <div class="card-body">
+      <div class="card-grade g-${s.grade}">${gi.label}　${s.grade==='ume'?'初級':s.grade==='take'?'中級':'上級'}</div>
+      <div class="card-name">${s.name}</div>
+      <div class="card-desc">${s.tagline}</div>
+      <div class="card-meta">
+        <span class="card-cat">${s.cat}</span>
+        <span class="card-view">👁 ${s.views}回</span>
+      </div>
+      <div class="card-nefuda">
+        <span class="nefuda-label">お値段</span>
+        <span class="nefuda-free">無料で使えます！</span>
+      </div>
+      <div class="card-btns">
+        <button class="btn-get btn-get-${s.grade}" onclick="openModal(${s.id})">インストール方法を見る</button>
+        <button class="btn-save ${isSaved?'saved':''}" onclick="toggleSave(${s.id},event)" title="気になる">${isSaved?'★':'☆'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function thumbSvg(s){
+  const W=200, H=130;
+  const svgOpen=`<svg class="thumb-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="position:relative;z-index:1;">`;
+  const svgClose=`</svg>`;
+
+  // id:1 声で文字おこし — マイク→波形→テキスト
+  if(s.id===1) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#f8f0fc" opacity="0.85"/>
+    <!-- マイク -->
+    <rect x="88" y="18" width="24" height="36" rx="12" fill="#8b4a7a" opacity="0.9"/>
+    <path d="M76,46 Q76,68 100,68 Q124,68 124,46" fill="none" stroke="#8b4a7a" stroke-width="3" stroke-linecap="round"/>
+    <line x1="100" y1="68" x2="100" y2="78" stroke="#8b4a7a" stroke-width="2.5"/>
+    <line x1="86" y1="78" x2="114" y2="78" stroke="#8b4a7a" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- 音波 -->
+    <g stroke="#ume" stroke-width="2" stroke-linecap="round" opacity="0.6">
+      <path d="M60,42 Q60,55 60,68" fill="none" stroke="#b06090" stroke-width="2"/>
+      <path d="M50,36 Q50,62 50,88" fill="none" stroke="#b06090" stroke-width="1.5" opacity="0.5"/>
+      <path d="M140,42 Q140,55 140,68" fill="none" stroke="#b06090" stroke-width="2"/>
+      <path d="M150,36 Q150,62 150,88" fill="none" stroke="#b06090" stroke-width="1.5" opacity="0.5"/>
+    </g>
+    <!-- 矢印 -->
+    <text x="100" y="92" text-anchor="middle" font-size="13" fill="#b06090">↓</text>
+    <!-- テキスト変換イメージ -->
+    <rect x="30" y="98" width="140" height="16" rx="3" fill="white" stroke="#ccc" stroke-width="1"/>
+    <rect x="34" y="102" width="60" height="3" rx="1" fill="#8b4a7a" opacity="0.6"/>
+    <rect x="34" y="108" width="80" height="3" rx="1" fill="#8b4a7a" opacity="0.4"/>
+    <text x="155" y="110" font-size="9" fill="#aaa" font-family="serif">文字化</text>
+  `+svgClose;
+
+  // id:2 手紙・お礼状 — 封筒と便箋
+  if(s.id===2) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#fdf8ee" opacity="0.85"/>
+    <!-- 便箋 -->
+    <rect x="45" y="14" width="100" height="80" rx="2" fill="white" stroke="#c8b88a" stroke-width="1.5"/>
+    <line x1="45" y1="14" x2="145" y2="14" stroke="#c8b88a" stroke-width="1.5"/>
+    <!-- 便箋の罫線 -->
+    <g stroke="#e8d8b0" stroke-width="0.8">
+      <line x1="52" y1="28" x2="138" y2="28"/>
+      <line x1="52" y1="36" x2="138" y2="36"/>
+      <line x1="52" y1="44" x2="138" y2="44"/>
+      <line x1="52" y1="52" x2="138" y2="52"/>
+      <line x1="52" y1="60" x2="138" y2="60"/>
+      <line x1="52" y1="68" x2="120" y2="68"/>
+    </g>
+    <!-- 文字（筆書き風） -->
+    <text x="56" y="27" font-family="serif" font-size="7" fill="#5a3a1a" opacity="0.7">拝啓　時下ますます</text>
+    <text x="56" y="35" font-family="serif" font-size="7" fill="#5a3a1a" opacity="0.7">ご清栄のこととお慶び</text>
+    <text x="56" y="43" font-family="serif" font-size="7" fill="#5a3a1a" opacity="0.7">申し上げます。</text>
+    <text x="56" y="51" font-family="serif" font-size="7" fill="#5a3a1a" opacity="0.5">このたびは…</text>
+    <!-- 封筒 -->
+    <rect x="30" y="85" width="140" height="38" rx="3" fill="#faebd0" stroke="#c8a870" stroke-width="1.5"/>
+    <polygon points="30,85 100,116 170,85" fill="none" stroke="#c8a870" stroke-width="1"/>
+    <polygon points="30,123 72,103 30,85" fill="#f0ddb0" opacity="0.5"/>
+    <polygon points="170,123 128,103 170,85" fill="#f0ddb0" opacity="0.5"/>
+    <text x="100" y="108" text-anchor="middle" font-family="serif" font-size="9" fill="#8b6914">〒 お礼状</text>
+  `+svgClose;
+
+  // id:3 PDFを読んで説明 — 書類→ふきだし
+  if(s.id===3) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#eaf0fd" opacity="0.85"/>
+    <!-- PDF書類 -->
+    <rect x="18" y="18" width="64" height="80" rx="3" fill="white" stroke="#e74c3c" stroke-width="2"/>
+    <rect x="18" y="18" width="64" height="16" rx="3" fill="#e74c3c"/>
+    <text x="50" y="30" text-anchor="middle" font-family="serif" font-size="10" font-weight="bold" fill="white">PDF</text>
+    <rect x="24" y="42" width="46" height="2.5" rx="1" fill="#ccc"/>
+    <rect x="24" y="48" width="52" height="2.5" rx="1" fill="#ccc"/>
+    <rect x="24" y="54" width="40" height="2.5" rx="1" fill="#ccc"/>
+    <rect x="24" y="60" width="48" height="2.5" rx="1" fill="#ccc"/>
+    <rect x="24" y="66" width="44" height="2.5" rx="1" fill="#ccc"/>
+    <rect x="24" y="72" width="50" height="2.5" rx="1" fill="#ccc"/>
+    <rect x="24" y="78" width="36" height="2.5" rx="1" fill="#ccc"/>
+    <!-- 矢印 -->
+    <text x="95" y="62" text-anchor="middle" font-size="18" fill="#2c3e7a" font-weight="bold">→</text>
+    <!-- ふきだし「わかった！」 -->
+    <rect x="108" y="22" width="72" height="55" rx="8" fill="#2c3e7a"/>
+    <polygon points="108,50 95,58 112,58" fill="#2c3e7a"/>
+    <text x="144" y="40" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="10" fill="white">むずかしい</text>
+    <text x="144" y="52" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="10" fill="white">書類も</text>
+    <text x="144" y="64" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="10" fill="#ffd700">わかりやすく</text>
+    <!-- 下部ラベル -->
+    <text x="100" y="105" text-anchor="middle" font-family="serif" font-size="9" fill="#5a5a8a">書類・PDF → やさしく説明</text>
+  `+svgClose;
+
+  // id:4 写真のアルバム説明文 — フォトアルバム
+  if(s.id===4) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#fef0f8" opacity="0.85"/>
+    <!-- アルバム本体 -->
+    <rect x="20" y="16" width="110" height="85" rx="4" fill="#8b5e2a"/>
+    <rect x="26" y="21" width="98" height="74" rx="2" fill="#f5f0e8"/>
+    <!-- 写真コマ1 -->
+    <rect x="30" y="25" width="42" height="30" rx="2" fill="#ddd"/>
+    <ellipse cx="45" cy="35" rx="8" ry="8" fill="#bbb"/>
+    <polygon points="30,55 42,42 52,48 72,35 72,55" fill="#aaa"/>
+    <!-- 写真コマ2 -->
+    <rect x="78" y="25" width="42" height="30" rx="2" fill="#d0e8d0"/>
+    <ellipse cx="99" cy="40" rx="12" ry="8" fill="#88bb88"/>
+    <rect x="88" y="48" width="22" height="7" rx="1" fill="#6a9a6a"/>
+    <!-- 写真コマ3 -->
+    <rect x="30" y="60" width="90" height="28" rx="2" fill="#e8d8f0"/>
+    <!-- 人物シルエット（家族） -->
+    <circle cx="50" cy="66" r="5" fill="#8b4a7a"/>
+    <rect x="45" y="71" width="10" height="13" rx="2" fill="#8b4a7a"/>
+    <circle cx="68" cy="63" r="6" fill="#5a3a8a"/>
+    <rect x="62" y="69" width="12" height="15" rx="2" fill="#5a3a8a"/>
+    <circle cx="88" cy="66" r="4" fill="#c06080"/>
+    <rect x="84" y="70" width="8" height="12" rx="2" fill="#c06080"/>
+    <!-- テキスト -->
+    <rect x="136" y="26" width="42" height="70" rx="3" fill="white" stroke="#e8c8d8" stroke-width="1"/>
+    <text x="157" y="40" text-anchor="middle" font-family="serif" font-size="7" fill="#8b4a7a">一言</text>
+    <text x="157" y="50" text-anchor="middle" font-family="serif" font-size="7" fill="#8b4a7a">コメント</text>
+    <rect x="140" y="56" width="34" height="2" rx="1" fill="#e8c8d8"/>
+    <rect x="140" y="61" width="30" height="2" rx="1" fill="#e8c8d8"/>
+    <rect x="140" y="66" width="32" height="2" rx="1" fill="#e8c8d8"/>
+    <rect x="140" y="71" width="28" height="2" rx="1" fill="#e8c8d8"/>
+    <text x="100" y="110" text-anchor="middle" font-family="serif" font-size="9" fill="#8b4a7a">思い出写真に添える一言</text>
+  `+svgClose;
+
+  // id:5 薬・病気を調べる — 錠剤・虫眼鏡
+  if(s.id===5) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#edfaf4" opacity="0.85"/>
+    <!-- 薬の錠剤 -->
+    <ellipse cx="55" cy="50" rx="28" ry="18" fill="white" stroke="#3a7a5a" stroke-width="2"/>
+    <ellipse cx="55" cy="50" rx="28" ry="18" fill="none" stroke="#3a7a5a" stroke-width="2" clip-path="url(#lc)"/>
+    <rect x="27" y="50" width="56" height="18" rx="0 0 28 28" fill="#3a7a5a" opacity="0.15"/>
+    <line x1="27" y1="50" x2="83" y2="50" stroke="#3a7a5a" stroke-width="1.5"/>
+    <!-- 薬袋 -->
+    <rect x="18" y="72" width="74" height="38" rx="3" fill="#e8f8f0" stroke="#3a7a5a" stroke-width="1.5"/>
+    <text x="55" y="88" text-anchor="middle" font-family="serif" font-size="8" fill="#2e6b4a">お薬の説明</text>
+    <rect x="24" y="93" width="62" height="2" rx="1" fill="#3a7a5a" opacity="0.3"/>
+    <rect x="24" y="98" width="55" height="2" rx="1" fill="#3a7a5a" opacity="0.3"/>
+    <rect x="24" y="103" width="58" height="2" rx="1" fill="#3a7a5a" opacity="0.3"/>
+    <!-- 虫眼鏡 -->
+    <circle cx="138" cy="52" r="28" fill="none" stroke="#2e6b4a" stroke-width="3" opacity="0.15"/>
+    <circle cx="138" cy="52" r="22" fill="rgba(200,240,220,0.4)" stroke="#2e6b4a" stroke-width="2.5"/>
+    <line x1="155" y1="69" x2="170" y2="84" stroke="#2e6b4a" stroke-width="4" stroke-linecap="round"/>
+    <!-- 虫眼鏡の中身 -->
+    <text x="138" y="48" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="11" fill="#2e6b4a">薬</text>
+    <text x="138" y="61" text-anchor="middle" font-family="serif" font-size="8" fill="#3a7a5a">調べる</text>
+    <text x="100" y="112" text-anchor="middle" font-family="serif" font-size="9" fill="#2e6b4a">薬・病気をやさしく調べます</text>
+  `+svgClose;
+
+  // id:6 俳句・川柳 — 短冊と筆
+  if(s.id===6) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#fdf0f8" opacity="0.85"/>
+    <!-- 短冊1（桜） -->
+    <rect x="28" y="12" width="32" height="90" rx="3" fill="#fce8f4" stroke="#d080b0" stroke-width="1.5"/>
+    <text x="44" y="30" text-anchor="middle" writing-mode="vertical-rl" font-family="'Shippori Mincho B1',serif" font-size="10" fill="#8b2060" letter-spacing="2">春風や</text>
+    <text x="44" y="62" text-anchor="middle" writing-mode="vertical-rl" font-family="'Shippori Mincho B1',serif" font-size="9" fill="#8b2060" opacity="0.7">桜ひらひら</text>
+    <text x="44" y="90" text-anchor="middle" writing-mode="vertical-rl" font-family="'Shippori Mincho B1',serif" font-size="9" fill="#8b2060" opacity="0.7">孫の笑顔</text>
+    <!-- 短冊2（川柳） -->
+    <rect x="70" y="20" width="32" height="90" rx="3" fill="#e8f4e8" stroke="#60a060" stroke-width="1.5"/>
+    <text x="86" y="36" text-anchor="middle" writing-mode="vertical-rl" font-family="'Shippori Mincho B1',serif" font-size="10" fill="#2e602e" letter-spacing="2">パソコンも</text>
+    <text x="86" y="70" text-anchor="middle" writing-mode="vertical-rl" font-family="'Shippori Mincho B1',serif" font-size="9" fill="#2e602e" opacity="0.7">AIに任せて</text>
+    <text x="86" y="100" text-anchor="middle" writing-mode="vertical-rl" font-family="'Shippori Mincho B1',serif" font-size="9" fill="#2e602e" opacity="0.7">楽々だ</text>
+    <!-- 筆 -->
+    <line x1="130" y1="15" x2="160" y2="95" stroke="#5a3a1a" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="128" cy="12" rx="6" ry="8" fill="#2a1a0a"/>
+    <polygon points="156,88 164,100 148,96" fill="#1a1a1a" opacity="0.8"/>
+    <!-- 墨 -->
+    <ellipse cx="158" cy="105" rx="14" ry="4" fill="#1a1a1a" opacity="0.15"/>
+    <!-- 桜 -->
+    <g fill="#f4b0c8" opacity="0.7">
+      <circle cx="170" cy="25" r="4"/><circle cx="178" cy="32" r="3"/><circle cx="165" cy="35" r="3"/>
+      <circle cx="175" cy="20" r="3"/><circle cx="183" cy="26" r="3"/>
+    </g>
+    <text x="100" y="122" text-anchor="middle" font-family="serif" font-size="9" fill="#8b4a7a">俳句・川柳を作ります</text>
+  `+svgClose;
+
+  // id:7 Excelで家計簿 — グラフ・通帳
+  if(s.id===7) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#e8f8e8" opacity="0.85"/>
+    <!-- エクセル風グリッド -->
+    <rect x="15" y="15" width="105" height="75" rx="2" fill="white" stroke="#2e7a2e" stroke-width="1.5"/>
+    <rect x="15" y="15" width="105" height="14" rx="2" fill="#2e7a2e"/>
+    <text x="67" y="26" text-anchor="middle" font-size="9" fill="white" font-family="serif">家計簿</text>
+    <!-- グリッド -->
+    <g stroke="#c8e8c8" stroke-width="0.8">
+      <line x1="15" y1="43" x2="120" y2="43"/>
+      <line x1="15" y1="57" x2="120" y2="57"/>
+      <line x1="15" y1="71" x2="120" y2="71"/>
+      <line x1="50" y1="29" x2="50" y2="90"/>
+      <line x1="85" y1="29" x2="85" y2="90"/>
+    </g>
+    <text x="22" y="40" font-size="7" fill="#5a5a5a">食費</text>
+    <text x="55" y="40" font-size="7" fill="#2e7a2e">¥32,000</text>
+    <text x="22" y="54" font-size="7" fill="#5a5a5a">医療費</text>
+    <text x="55" y="54" font-size="7" fill="#2e7a2e">¥8,500</text>
+    <text x="22" y="68" font-size="7" fill="#5a5a5a">水道光熱</text>
+    <text x="55" y="68" font-size="7" fill="#2e7a2e">¥14,200</text>
+    <text x="22" y="82" font-size="7" fill="#5a5a5a">合計</text>
+    <text x="55" y="82" font-size="7" font-weight="bold" fill="#c0392b">¥54,700</text>
+    <!-- 棒グラフ -->
+    <rect x="128" y="15" width="52" height="75" rx="2" fill="white" stroke="#ccc" stroke-width="1"/>
+    <rect x="134" y="58" width="10" height="26" rx="1" fill="#2e7a2e" opacity="0.7"/>
+    <rect x="148" y="45" width="10" height="39" rx="1" fill="#4a9a4a" opacity="0.7"/>
+    <rect x="162" y="30" width="10" height="54" rx="1" fill="#c0392b" opacity="0.6"/>
+    <line x1="130" y1="84" x2="178" y2="84" stroke="#bbb" stroke-width="1"/>
+    <text x="139" y="92" font-size="6" fill="#888">食</text>
+    <text x="153" y="92" font-size="6" fill="#888">医</text>
+    <text x="167" y="92" font-size="6" fill="#888">光</text>
+    <text x="100" y="108" text-anchor="middle" font-family="serif" font-size="9" fill="#2e6b2e">家計簿＋グラフで見える化</text>
+  `+svgClose;
+
+  // id:8 趣味のブログ記事 — ブログ画面
+  if(s.id===8) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#eef4fd" opacity="0.85"/>
+    <!-- ブラウザ風 -->
+    <rect x="15" y="15" width="170" height="85" rx="4" fill="white" stroke="#aac0e8" stroke-width="1.5"/>
+    <rect x="15" y="15" width="170" height="16" rx="4" fill="#dde8f8"/>
+    <!-- URLバー -->
+    <rect x="40" y="18" width="120" height="10" rx="5" fill="white" stroke="#bbb" stroke-width="0.8"/>
+    <text x="100" y="26" text-anchor="middle" font-size="7" fill="#888">note.com / my-blog</text>
+    <!-- ブラウザボタン -->
+    <circle cx="22" cy="23" r="3" fill="#ff6b6b"/>
+    <circle cx="30" cy="23" r="3" fill="#ffd93d"/>
+    <!-- ブログ本文 -->
+    <text x="22" y="45" font-family="'Shippori Mincho B1',serif" font-size="9" fill="#2c2c2c" font-weight="bold">昨日の旅行のこと</text>
+    <rect x="22" y="50" width="90" height="1.5" rx="1" fill="#ccc"/>
+    <rect x="22" y="55" width="150" height="2" rx="1" fill="#ddd"/>
+    <rect x="22" y="60" width="140" height="2" rx="1" fill="#ddd"/>
+    <rect x="22" y="65" width="145" height="2" rx="1" fill="#ddd"/>
+    <rect x="22" y="70" width="130" height="2" rx="1" fill="#ddd"/>
+    <!-- 写真枠 -->
+    <rect x="110" y="42" width="65" height="40" rx="2" fill="#e8d8c8"/>
+    <ellipse cx="137" cy="55" rx="12" ry="9" fill="#c8b0a0"/>
+    <polygon points="110,82 130,65 145,72 175,58 175,82" fill="#b09888"/>
+    <text x="137" y="90" text-anchor="middle" font-size="7" fill="#8b6040">旅行写真</text>
+    <!-- note.com ロゴ風 -->
+    <rect x="15" y="100" width="170" height="12" rx="0 0 4 4" fill="#f0f8ff"/>
+    <text x="100" y="109" text-anchor="middle" font-size="8" fill="#5a7aaa">noteに自動投稿できます</text>
+  `+svgClose;
+
+  // id:9 Wordで手順書作り — Word文書
+  if(s.id===9) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#eef4fd" opacity="0.85"/>
+    <!-- Word風アイコン -->
+    <rect x="15" y="15" width="50" height="60" rx="3" fill="#2c5898"/>
+    <text x="40" y="36" text-anchor="middle" font-family="serif" font-size="18" font-weight="bold" fill="white">W</text>
+    <text x="40" y="50" text-anchor="middle" font-family="serif" font-size="8" fill="rgba(255,255,255,0.8)">Word</text>
+    <rect x="20" y="58" width="40" height="3" rx="1" fill="rgba(255,255,255,0.4)"/>
+    <rect x="20" y="63" width="35" height="3" rx="1" fill="rgba(255,255,255,0.4)"/>
+    <!-- 手順書イメージ -->
+    <rect x="75" y="15" width="105" height="90" rx="3" fill="white" stroke="#2c5898" stroke-width="1.5"/>
+    <rect x="75" y="15" width="105" height="12" rx="3" fill="#2c5898"/>
+    <text x="128" y="25" text-anchor="middle" font-size="8" fill="white">手順書</text>
+    <!-- ステップ -->
+    <circle cx="84" cy="40" r="5" fill="#2c5898"/>
+    <text x="84" y="43" text-anchor="middle" font-size="7" fill="white">1</text>
+    <rect x="94" y="37" width="78" height="3" rx="1" fill="#ccc"/>
+    <rect x="94" y="42" width="65" height="2" rx="1" fill="#ddd"/>
+    <circle cx="84" cy="58" r="5" fill="#2c5898"/>
+    <text x="84" y="61" text-anchor="middle" font-size="7" fill="white">2</text>
+    <rect x="94" y="55" width="70" height="3" rx="1" fill="#ccc"/>
+    <rect x="94" y="60" width="75" height="2" rx="1" fill="#ddd"/>
+    <circle cx="84" cy="76" r="5" fill="#2c5898"/>
+    <text x="84" y="79" text-anchor="middle" font-size="7" fill="white">3</text>
+    <rect x="94" y="73" width="72" height="3" rx="1" fill="#ccc"/>
+    <rect x="94" y="78" width="60" height="2" rx="1" fill="#ddd"/>
+    <rect x="80" y="90" width="94" height="10" rx="2" fill="#2c5898" opacity="0.15"/>
+    <text x="127" y="98" text-anchor="middle" font-size="7" fill="#2c5898">ダウンロードできます</text>
+    <text x="100" y="115" text-anchor="middle" font-family="serif" font-size="9" fill="#2c5898">手順書をWord形式で自動生成</text>
+  `+svgClose;
+
+  // id:10 スマホ写真をスライド — スライドショー
+  if(s.id===10) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#f8f0e8" opacity="0.85"/>
+    <!-- スマホ -->
+    <rect x="15" y="18" width="38" height="72" rx="5" fill="#2a2a2a"/>
+    <rect x="19" y="24" width="30" height="54" rx="2" fill="#4a8a6a"/>
+    <ellipse cx="34" cy="70" rx="10" ry="7" fill="#3a7a5a"/>
+    <circle cx="34" cy="85" r="3" fill="#555"/>
+    <!-- 矢印 -->
+    <text x="65" y="58" text-anchor="middle" font-size="16" fill="#b06090">→</text>
+    <!-- スライド -->
+    <rect x="78" y="18" width="100" height="72" rx="4" fill="white" stroke="#c8a070" stroke-width="2"/>
+    <rect x="78" y="18" width="100" height="20" rx="4" fill="#c8a070"/>
+    <text x="128" y="32" text-anchor="middle" font-size="9" fill="white" font-family="'Shippori Mincho B1',serif">家族旅行の思い出</text>
+    <!-- スライド内写真 -->
+    <rect x="82" y="42" width="42" height="30" rx="2" fill="#e8d8c8"/>
+    <ellipse cx="98" cy="52" rx="8" ry="6" fill="#c8a888"/>
+    <polygon points="82,72 94,60 104,65 124,55 124,72" fill="#b09878"/>
+    <rect x="130" y="42" width="44" height="30" rx="2" fill="#d8e8d8"/>
+    <ellipse cx="152" cy="57" rx="14" ry="8" fill="#88a888"/>
+    <!-- ページ番号 -->
+    <text x="128" y="82" text-anchor="middle" font-size="8" fill="#888">1 / 12</text>
+    <!-- 再生ボタン -->
+    <circle cx="128" cy="92" r="7" fill="#c8a070"/>
+    <polygon points="125,88 125,96 133,92" fill="white"/>
+    <text x="100" y="108" text-anchor="middle" font-family="serif" font-size="9" fill="#8b6040">写真をスライドショーに！</text>
+  `+svgClose;
+
+  // id:11 健康記録をグラフ化
+  if(s.id===11) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#edfaf4" opacity="0.85"/>
+    <!-- 血圧計イメージ -->
+    <rect x="15" y="18" width="60" height="48" rx="4" fill="white" stroke="#3a7a5a" stroke-width="1.5"/>
+    <text x="45" y="32" text-anchor="middle" font-size="8" fill="#3a7a5a">血圧</text>
+    <text x="45" y="46" text-anchor="middle" font-size="14" font-weight="bold" fill="#c0392b">128</text>
+    <text x="45" y="58" text-anchor="middle" font-size="8" fill="#888">/ 82</text>
+    <!-- 体重計 -->
+    <ellipse cx="45" cy="88" rx="28" ry="20" fill="white" stroke="#3a7a5a" stroke-width="1.5"/>
+    <text x="45" y="86" text-anchor="middle" font-size="10" font-weight="bold" fill="#2e6b4a">62.4</text>
+    <text x="45" y="96" text-anchor="middle" font-size="7" fill="#888">kg</text>
+    <!-- グラフ -->
+    <rect x="88" y="15" width="92" height="80" rx="3" fill="white" stroke="#3a7a5a" stroke-width="1.5"/>
+    <polyline points="96,80 108,65 120,70 132,52 144,58 156,44 168,50" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="96,85 108,82 120,84 132,78 144,80 156,75 168,77" fill="none" stroke="#2e6b4a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 2"/>
+    <line x1="92" y1="90" x2="178" y2="90" stroke="#ccc" stroke-width="1"/>
+    <line x1="92" y1="18" x2="92" y2="90" stroke="#ccc" stroke-width="1"/>
+    <!-- 凡例 -->
+    <line x1="96" y1="98" x2="108" y2="98" stroke="#c0392b" stroke-width="2"/>
+    <text x="112" y="101" font-size="6" fill="#888">血圧</text>
+    <line x1="130" y1="98" x2="142" y2="98" stroke="#2e6b4a" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <text x="146" y="101" font-size="6" fill="#888">体重</text>
+    <text x="100" y="110" text-anchor="middle" font-family="serif" font-size="9" fill="#2e6b4a">記録をグラフで見える化</text>
+  `+svgClose;
+
+  // id:12 販売用LP作り — ランディングページ
+  if(s.id===12) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#fff8e8" opacity="0.85"/>
+    <!-- ブラウザ -->
+    <rect x="15" y="15" width="170" height="88" rx="4" fill="white" stroke="#c49a00" stroke-width="2"/>
+    <rect x="15" y="15" width="170" height="14" rx="4" fill="#8b6a00"/>
+    <!-- LP内容 -->
+    <rect x="15" y="29" width="170" height="30" fill="#faebd0"/>
+    <text x="100" y="42" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="11" font-weight="bold" fill="#5a3000">あなたの得意を売ろう！</text>
+    <text x="100" y="53" text-anchor="middle" font-size="7" fill="#7a5020">AIで本格販売ページを自動生成</text>
+    <!-- 特徴3つ -->
+    <rect x="20" y="62" width="48" height="26" rx="2" fill="#fdf3e3" stroke="#e8a830" stroke-width="1"/>
+    <text x="44" y="74" text-anchor="middle" font-size="7" fill="#8b6014">簡単</text>
+    <text x="44" y="83" text-anchor="middle" font-size="6" fill="#aaa">操作不要</text>
+    <rect x="76" y="62" width="48" height="26" rx="2" fill="#fdf3e3" stroke="#e8a830" stroke-width="1"/>
+    <text x="100" y="74" text-anchor="middle" font-size="7" fill="#8b6014">本格的</text>
+    <text x="100" y="83" text-anchor="middle" font-size="6" fill="#aaa">プロ品質</text>
+    <rect x="132" y="62" width="48" height="26" rx="2" fill="#fdf3e3" stroke="#e8a830" stroke-width="1"/>
+    <text x="156" y="74" text-anchor="middle" font-size="7" fill="#8b6014">すぐ売れる</text>
+    <text x="156" y="83" text-anchor="middle" font-size="6" fill="#aaa">収益直結</text>
+    <!-- CTAボタン -->
+    <rect x="40" y="93" width="120" height="8" rx="4" fill="#c49a00"/>
+    <text x="100" y="100" text-anchor="middle" font-size="7" fill="white">今すぐ購入する →</text>
+    <text x="100" y="115" text-anchor="middle" font-family="serif" font-size="9" fill="#8b6a00">売れるLPをAIが自動生成！</text>
+  `+svgClose;
+
+  // id:13 毎日自動で詩を投稿 — YouTubeとパイプライン
+  if(s.id===13) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#fff0f0" opacity="0.85"/>
+    <!-- 時計 19:00 -->
+    <circle cx="35" cy="42" r="20" fill="white" stroke="#c0392b" stroke-width="2"/>
+    <line x1="35" y1="28" x2="35" y2="42" stroke="#2a2a2a" stroke-width="2" stroke-linecap="round"/>
+    <line x1="35" y1="42" x2="47" y2="48" stroke="#2a2a2a" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="35" y="56" text-anchor="middle" font-size="7" fill="#c0392b">19:00</text>
+    <!-- 矢印チェーン -->
+    <text x="65" y="45" font-size="12" fill="#c0392b">→</text>
+    <!-- 詩 -->
+    <rect x="78" y="24" width="38" height="38" rx="3" fill="#fff8f0" stroke="#c8a070" stroke-width="1.5"/>
+    <text x="97" y="36" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="7" fill="#5a3a1a">今日の詩</text>
+    <rect x="82" y="40" width="30" height="1.5" rx="1" fill="#e8c8a0"/>
+    <rect x="82" y="44" width="26" height="1.5" rx="1" fill="#e8c8a0"/>
+    <rect x="82" y="48" width="28" height="1.5" rx="1" fill="#e8c8a0"/>
+    <text x="97" y="58" text-anchor="middle" font-size="7" fill="#c0392b">自動生成</text>
+    <!-- 矢印 -->
+    <text x="124" y="45" font-size="12" fill="#c0392b">→</text>
+    <!-- YouTube -->
+    <rect x="136" y="24" width="40" height="28" rx="4" fill="#c0392b"/>
+    <polygon points="150,32 150,44 162,38" fill="white"/>
+    <text x="156" y="58" text-anchor="middle" font-size="7" fill="#c0392b">自動投稿</text>
+    <!-- 毎日ループ -->
+    <path d="M35,65 Q100,80 165,65" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+    <text x="100" y="78" text-anchor="middle" font-size="8" fill="#c0392b">毎日自動でくり返す</text>
+    <!-- 実績テキスト -->
+    <rect x="15" y="85" width="170" height="18" rx="3" fill="#fff0f0" stroke="#e8c0c0" stroke-width="1"/>
+    <text x="100" y="96" text-anchor="middle" font-family="serif" font-size="8" fill="#c0392b">げんさんが毎日19:00に実際に稼働中！</text>
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#c0392b" stroke-width="1.5"/></marker></defs>
+  `+svgClose;
+
+  // id:14 商品リサーチ自動化
+  if(s.id===14) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#fff8e8" opacity="0.85"/>
+    <!-- 検索窓 -->
+    <rect x="15" y="18" width="150" height="16" rx="8" fill="white" stroke="#c49a00" stroke-width="1.5"/>
+    <text x="30" y="30" font-size="8" fill="#aaa">売れる商品を調べる…</text>
+    <circle cx="158" cy="26" r="6" fill="#c49a00"/>
+    <circle cx="157" cy="25" r="3.5" fill="none" stroke="white" stroke-width="1.2"/>
+    <line x1="160" y1="28" x2="163" y2="31" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- 結果リスト -->
+    <rect x="15" y="40" width="170" height="18" rx="2" fill="white" stroke="#e8c860" stroke-width="1"/>
+    <text x="22" y="50" font-size="8" fill="#5a4000">🥇 手作りジャム　人気急上昇中</text>
+    <text x="155" y="51" font-size="7" fill="#c0392b">¥1,200</text>
+    <rect x="15" y="62" width="170" height="18" rx="2" fill="white" stroke="#ddd" stroke-width="1"/>
+    <text x="22" y="72" font-size="8" fill="#5a4000">🥈 お裾分けクッキー　定番人気</text>
+    <text x="155" y="73" font-size="7" fill="#c0392b">¥800</text>
+    <rect x="15" y="84" width="170" height="18" rx="2" fill="white" stroke="#ddd" stroke-width="1"/>
+    <text x="22" y="94" font-size="8" fill="#5a4000">🥉 昔ながらの梅干し　根強い需要</text>
+    <text x="155" y="95" font-size="7" fill="#c0392b">¥950</text>
+    <text x="100" y="112" text-anchor="middle" font-family="serif" font-size="9" fill="#8b6a00">売れ筋商品を自動でリサーチ</text>
+  `+svgClose;
+
+  // id:15 マニュアル自動生成
+  if(s.id===15) return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="#eef4fd" opacity="0.85"/>
+    <!-- 5つの質問 -->
+    <rect x="15" y="15" width="85" height="75" rx="3" fill="white" stroke="#2c3e7a" stroke-width="1.5"/>
+    <rect x="15" y="15" width="85" height="12" rx="3" fill="#2c3e7a"/>
+    <text x="58" y="25" text-anchor="middle" font-size="8" fill="white">５つの質問</text>
+    <g font-size="7" fill="#444">
+      <text x="20" y="38">Q1. 誰のための手順？</text>
+      <rect x="20" y="41" width="74" height="6" rx="1" fill="#e8ecf8"/>
+      <text x="20" y="54">Q2. 何をする手順？</text>
+      <rect x="20" y="57" width="74" height="6" rx="1" fill="#e8ecf8"/>
+      <text x="20" y="70">Q3. 何ステップある？</text>
+      <rect x="20" y="73" width="74" height="6" rx="1" fill="#e8ecf8"/>
+    </g>
+    <!-- 矢印 -->
+    <text x="108" y="56" text-anchor="middle" font-size="16" fill="#2c3e7a">→</text>
+    <!-- 完成したマニュアル -->
+    <rect x="120" y="15" width="55" height="75" rx="3" fill="white" stroke="#2c3e7a" stroke-width="1.5"/>
+    <rect x="120" y="15" width="55" height="10" rx="3" fill="#2c3e7a"/>
+    <text x="148" y="23" text-anchor="middle" font-size="7" fill="white">完成！</text>
+    <circle cx="130" cy="36" r="4" fill="#2c3e7a"/><text x="130" y="39" text-anchor="middle" font-size="6" fill="white">1</text>
+    <rect x="138" y="33" width="32" height="2" rx="1" fill="#ccc"/>
+    <rect x="138" y="37" width="28" height="1.5" rx="1" fill="#ddd"/>
+    <circle cx="130" cy="50" r="4" fill="#2c3e7a"/><text x="130" y="53" text-anchor="middle" font-size="6" fill="white">2</text>
+    <rect x="138" y="47" width="30" height="2" rx="1" fill="#ccc"/>
+    <rect x="138" y="51" width="26" height="1.5" rx="1" fill="#ddd"/>
+    <circle cx="130" cy="64" r="4" fill="#2c3e7a"/><text x="130" y="67" text-anchor="middle" font-size="6" fill="white">3</text>
+    <rect x="138" y="61" width="32" height="2" rx="1" fill="#ccc"/>
+    <rect x="138" y="65" width="24" height="1.5" rx="1" fill="#ddd"/>
+    <rect x="122" y="77" width="51" height="8" rx="2" fill="#2c3e7a" opacity="0.2"/>
+    <text x="148" y="84" text-anchor="middle" font-size="6" fill="#2c3e7a">Word保存OK</text>
+    <!-- 下部 -->
+    <text x="100" y="103" text-anchor="middle" font-family="serif" font-size="9" fill="#2c3e7a">5問に答えるだけで手順書完成！</text>
+  `+svgClose;
+
+  // default fallback
+  const gc=gradeInfo[s.grade]||{color:'#888'};
+  return svgOpen+`
+    <rect x="10" y="10" width="180" height="110" rx="8" fill="${gc.color}10" opacity="0.85"/>
+    <circle cx="100" cy="58" r="30" fill="none" stroke="${gc.color}" stroke-width="1.5" opacity="0.4"/>
+    <text x="100" y="64" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-size="28" fill="${gc.color}" opacity="0.6">${s.name[0]}</text>
+    <text x="100" y="88" text-anchor="middle" font-family="serif" font-size="9" fill="#aaa">${s.cat}</text>
+  `+svgClose;
+}
+
+function updateStats(){
+  const u=skills.filter(s=>s.grade==='ume').length;
+  const t=skills.filter(s=>s.grade==='take').length;
+  const m=skills.filter(s=>s.grade==='matsu').length;
+  document.getElementById('s-total').textContent=skills.length;
+  document.getElementById('s-saved').textContent=savedIds.length;
+  document.getElementById('s-ume').textContent=u;
+  document.getElementById('s-take').textContent=t;
+  document.getElementById('s-matsu').textContent=m;
+  document.getElementById('cnt-all').textContent=skills.length;
+  document.getElementById('cnt-ume').textContent=u;
+  document.getElementById('cnt-take').textContent=t;
+  document.getElementById('cnt-matsu').textContent=m;
+}
+
+function setTab(tab,el){
+  curTab=tab;
+  document.querySelectorAll('.mtm-tab').forEach(b=>{
+    b.className='mtm-tab';
+  });
+  if(tab==='all') el.classList.add('active-ume');
+  else el.classList.add(`active-${tab}`);
+  render();
+}
+
+function filterAll(){curSearch=document.getElementById('searchInput').value;render();}
+
+function toggleSave(id,e){
+  e.stopPropagation();
+  const idx=savedIds.indexOf(id);
+  if(idx>=0)savedIds.splice(idx,1);
+  else savedIds.push(id);
+  localStorage.setItem('asaichi_saved',JSON.stringify(savedIds));
+  const btn=document.querySelector(`#card-${id} .btn-save`);
+  if(btn){btn.textContent=savedIds.includes(id)?'★':'☆';btn.classList.toggle('saved',savedIds.includes(id));}
+  updateStats();
+  showToast('ok', savedIds.includes(id)?`「${skills.find(s=>s.id===id)?.name}」を気になるリストに追加しました ★`:'気になるリストから外しました');
+}
+
+function openModal(id){
+  const s=skills.find(x=>x.id===id);if(!s)return;
+  activeId=id;
+  const gi=gradeInfo[s.grade];
+  const hd=document.getElementById('mHd');
+  hd.style.background=gi.hd;
+  document.getElementById('mTitle').textContent=s.name;
+  document.getElementById('mSub').textContent=`${gi.label}コース（${s.grade==='ume'?'初級':s.grade==='take'?'中級':'上級'}）— ${s.cat}`;
+  document.getElementById('mDesc').textContent=s.desc;
+  document.getElementById('mInstallSteps').innerHTML=(s.installSteps||[]).map((t,i)=>`
+    <div class="step-item">
+      <div class="step-num" style="background:#c0392b;">${i+1}</div>
+      <div class="step-txt">${t}</div>
+    </div>`).join('');
+  document.getElementById('mUsageSteps').innerHTML=(s.usage||[]).map((t,i)=>`
+    <div class="step-item">
+      <div class="step-num" style="background:#2e6b2e;">${i+1}</div>
+      <div class="step-txt">${t}</div>
+    </div>`).join('');
+  document.getElementById('mCmd').textContent=s.installCmd||'';
+  const btn=document.getElementById('mInstBtn');
+  btn.style.background=gradeInfo[s.grade].color;
+  document.getElementById('skillModal').classList.add('open');
+}
+
+function bgClose(e){if(e.target.id==='skillModal')closeModal();}
+function closeModal(){document.getElementById('skillModal').classList.remove('open');}
+
+function copyCmd(){
+  const t=document.getElementById('mCmd').textContent;
+  navigator.clipboard.writeText(t).then(()=>{
+    const b=document.querySelector('.btn-copy');
+    b.textContent='コピー済 ✓';b.classList.add('ok');
+    setTimeout(()=>{b.textContent='コピー';b.classList.remove('ok');},2000);
+  });
+}
+
+// ===== ブリッジ: 朝市 ←→ 図書館 =====
+function getBridge(){
+  return JSON.parse(localStorage.getItem('skills_bridge')||'{"installed":[],"skills":[]}');
+}
+function bridgeMarkInstalled(skill){
+  const bridge=getBridge();
+  if(!bridge.installed) bridge.installed=[];
+  if(!bridge.skills) bridge.skills=[];
+  // 名前で重複チェック
+  if(!bridge.installed.includes(skill.name)){
+    bridge.installed.push(skill.name);
+    // 図書館用データを一緒に渡す
+    const catMap={'生活便利':'life','文章作成':'doc','書類理解':'doc','思い出整理':'photo','健康管理':'health','趣味・創作':'hobby','お金管理':'money','記録・文書':'doc','副業・収益':'lp','コンテンツ自動化':'dev'};
+    bridge.skills.push({
+      name:skill.name,
+      cat:catMap[skill.cat]||'other',
+      lvl:skill.grade==='ume'?'小学生OK':skill.grade==='take'?'中学生OK':'上級者向け',
+      desc:skill.desc,
+      skillId:skill.skillId||'',
+      installCmd:skill.installCmd||'',
+      usage:skill.usage||[],
+      grade:skill.grade,
+      asaichiCat:skill.cat
+    });
+  }
+  bridge.lastUpdated=new Date().toISOString();
+  bridge.source='asaichi';
+  localStorage.setItem('skills_bridge',JSON.stringify(bridge));
+}
+function bridgeIsInstalled(skillName){
+  return (getBridge().installed||[]).includes(skillName);
+}
+
+function goToLibrary(){
+  const s=skills.find(x=>x.id===activeId);
+  if(s) bridgeMarkInstalled(s);
+  closeModal();
+  showToast('ok',`「${s?s.name:''}」を図書館に登録しました！ 図書館ページを開きます...`);
+  // URLハッシュにスキルデータをエンコードして渡す
+  if(s){
+    const catMap={'生活便利':'life','文章作成':'doc','書類理解':'doc','思い出整理':'photo','健康管理':'health','趣味・創作':'hobby','お金管理':'money','記録・文書':'doc','副業・収益':'lp','コンテンツ自動化':'dev'};
+    const obj={
+      name:s.name,cat:catMap[s.cat]||'other',
+      lvl:s.grade==='ume'?'小学生OK':s.grade==='take'?'中学生OK':'上級者向け',
+      desc:s.desc,skillId:s.skillId||'',installCmd:s.installCmd||'',usage:s.usage||[],asaichiCat:s.cat
+    };
+    const json=JSON.stringify(obj);
+    const encoded=encodeURIComponent(json);
+    const url='../skills_toshokan/skills_showa2.html?from=asaichi&data='+encoded;
+    setTimeout(()=>{location.href=url;},600);
+  }
+}
+
+function showToast(type,msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ===== スキル制作代行 =====
+const ORDER_API='https://yyama-ai-bot.yyamagen.workers.dev/api/skill-order';
+
+async function submitOrder(e){
+  e.preventDefault();
+  const btn=document.getElementById('orderSubmitBtn');
+  btn.disabled=true;
+  btn.textContent='送信中...';
+  btn.style.opacity='0.6';
+
+  const body={
+    name:document.getElementById('orderName').value.trim(),
+    email:document.getElementById('orderEmail').value.trim(),
+    detail:document.getElementById('orderDetail').value.trim(),
+  };
+
+  try{
+    const res=await fetch(ORDER_API,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body),
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'送信エラー');
+
+    document.getElementById('orderForm').style.display='none';
+    document.getElementById('orderComplete').style.display='block';
+    showToast('ok','リクエストを送信しました！');
+  }catch(err){
+    showToast('','エラー: '+(err.message||'送信に失敗しました'));
+    btn.disabled=false;
+    btn.textContent='無料で見積りをリクエスト →';
+    btn.style.opacity='1';
+  }
+}
+
+// 花びら
+(function(){
+  const colors=['#f8b4c8','#ffc8d8','#f4a0b8','#ffe0ec','#ffd0e0'];
+  for(let i=0;i<22;i++){
+    const d=document.createElement('div');
+    d.className='petal';
+    const sz=5+Math.random()*9;
+    d.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz*0.65}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:50% 50% 50% 0;transform:rotate(${Math.random()*360}deg);animation-duration:${3.5+Math.random()*4}s;animation-delay:${Math.random()*6}s;top:-10px;`;
+    document.getElementById('petals').appendChild(d);
+  }
+})();
+
+// JSONからスキルデータを読み込み、失敗したらフォールバック使用
+loadSkills().catch(()=>{
+  skills=fallbackSkills;
+  savedIds=JSON.parse(localStorage.getItem('asaichi_saved')||'[]');
+  render();
+  updateStats();
+});
+</script>
+</body>
+</html>
