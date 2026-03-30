@@ -736,7 +736,7 @@ main{padding:0;}
 <div style="background:#3d2e1a;text-align:center;padding:6px 12px;font-size:12px;display:flex;justify-content:center;gap:20px;align-items:center;">
   <span style="color:#ffd700;font-family:'Shippori Mincho B1',serif;font-weight:700;border-bottom:2px solid #ffd700;padding-bottom:2px;">スキル朝市</span>
   <span style="color:rgba(255,255,255,0.3);">|</span>
-  <a href="../skills_toshokan/skills_showa2.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-family:'Kaisei Opti',serif;" onmouseover="this.style.color='#ffd700'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">スキル図書館で管理する &rarr;</a>
+  <a href="#" onclick="showLibraryPreview();return false;" style="color:rgba(255,255,255,0.7);text-decoration:none;font-family:'Kaisei Opti',serif;" onmouseover="this.style.color='#ffd700'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">スキル図書館で管理する &rarr;</a>
 </div>
 
 <!-- Claude Code セットアップバナー -->
@@ -948,7 +948,7 @@ main{padding:0;}
       <div id="mUsageSteps"></div>
 
       <div class="modal-btns">
-        <button class="btn-install-ok" id="mInstBtn" onclick="goToLibrary()">インストール済み帳に登録 ✓</button>
+        <button class="btn-install-ok" id="mInstBtn" onclick="showLibraryPreview()">インストール済み帳に登録 ✓</button>
         <button class="btn-close" onclick="closeModal()">閉じる</button>
       </div>
     </div>
@@ -1990,23 +1990,61 @@ function bridgeIsInstalled(skillName){
 }
 
 function goToLibrary(){
-  const s=skills.find(x=>x.id===activeId);
-  if(s) bridgeMarkInstalled(s);
+  showLibraryPreview();
+}
+
+function showLibraryPreview(){
   closeModal();
-  showToast('ok',`「${s?s.name:''}」を図書館に登録しました！ 図書館ページを開きます...`);
-  // URLハッシュにスキルデータをエンコードして渡す
-  if(s){
-    const catMap={'生活便利':'life','文章作成':'doc','書類理解':'doc','思い出整理':'photo','健康管理':'health','趣味・創作':'hobby','お金管理':'money','記録・文書':'doc','副業・収益':'lp','コンテンツ自動化':'dev'};
-    const obj={
-      name:s.name,cat:catMap[s.cat]||'other',
-      lvl:s.grade==='ume'?'小学生OK':s.grade==='take'?'中学生OK':'上級者向け',
-      desc:s.desc,skillId:s.skillId||'',installCmd:s.installCmd||'',usage:s.usage||[],asaichiCat:s.cat
-    };
-    const json=JSON.stringify(obj);
-    const encoded=encodeURIComponent(json);
-    const url='../skills_toshokan/skills_showa2.html?from=asaichi&data='+encoded;
-    setTimeout(()=>{location.href=url;},600);
+  // 図書館準備中モーダルを表示
+  let overlay=document.getElementById('libraryPreviewOverlay');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='libraryPreviewOverlay';
+    overlay.onclick=function(e){if(e.target===overlay)overlay.style.display='none';};
+    overlay.style.cssText='display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(26,18,8,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML=`
+      <div style="background:#fdf8ee;border:3px solid #8b6a00;border-radius:16px;max-width:480px;width:100%;overflow:hidden;animation:mIn 0.3s ease;">
+        <div style="background:linear-gradient(135deg,#8b6a00,#c49a00);padding:24px 28px;text-align:center;">
+          <div style="font-size:48px;margin-bottom:8px;">📚</div>
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:22px;font-weight:800;color:white;">スキル図書館</div>
+          <div style="color:#ffeebb;font-size:13px;margin-top:4px;">まもなくオープン！</div>
+        </div>
+        <div style="padding:24px 28px;text-align:center;">
+          <div style="font-family:'Shippori Mincho B1',serif;font-size:26px;font-weight:800;color:#c0392b;margin-bottom:16px;line-height:1.4;">
+            どんどん忘れても<br>大丈夫！
+          </div>
+          <div style="font-size:14px;color:#3d2e1a;line-height:2;margin-bottom:20px;">
+            「あれ、何のスキル入れたっけ？」<br>
+            「使い方どうだったっけ？」<br>
+            <span style="font-weight:700;color:#8b6a00;">ぜ〜んぶ図書館が覚えてます。</span><br>
+            <span style="font-size:12px;color:#7a6545;">（あなたの代わりに記憶担当します）</span>
+          </div>
+          <div style="background:#fff8f0;border:2px dashed #e8a830;border-radius:10px;padding:16px;margin-bottom:20px;text-align:left;">
+            <div style="font-family:'Shippori Mincho B1',serif;font-size:14px;font-weight:700;color:#8b6a00;margin-bottom:10px;">🎁 無料会員登録でできること</div>
+            <div style="font-size:13px;color:#3d2e1a;line-height:1.8;">
+              ✅ 自分だけの本棚（インストール済み一覧）<br>
+              ✅ 「何を入れたか」いつでも確認<br>
+              ✅ 新しいスキル入荷のお知らせメール<br>
+              ✅ スキル制作代行の会員割引
+            </div>
+          </div>
+          <div style="font-size:12px;color:#7a6545;margin-bottom:16px;">
+            メールアドレスだけで登録できます（パスワード不要）
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button onclick="document.getElementById('libraryPreviewOverlay').style.display='none'" style="background:#e8d9aa;color:#3d2e1a;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-family:'Kaisei Opti',serif;cursor:pointer;">
+              楽しみに待つ ☕
+            </button>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:#b8a870;">
+            ※ 只今準備中です。もうしばらくお待ちください
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
   }
+  overlay.style.display='flex';
 }
 
 function showToast(type,msg){
